@@ -1049,6 +1049,20 @@
         </div>
 
         <div class="control-card">
+          <div class="control-title">
+            <span>Electrones de valencia del O</span>
+            <span class="badge badge-gold" id="w-hz-badge">60 Hz</span>
+          </div>
+          <input type="range" id="w-slider-hz" min="1" max="1000" step="1" value="60" oninput="setWaterHz(this.value)">
+          <p class="control-desc">
+            Regla 1: solo saltan a un sitio adyacente. Regla 2: nunca dos en el mismo sitio. La regla 2 no está
+            programada: la amplitud es un determinante de Slater y vale 0 con dos electrones iguales en un sitio.
+            Sube a 1000 Hz: las coincidencias se quedan en 0.
+          </p>
+          <p class="control-desc" id="w-stats"></p>
+        </div>
+
+        <div class="control-card">
           <div class="control-title"><span>Capas del H₂O</span></div>
           <div class="toggle-row">
             <span class="toggle-label"><span class="indicator-dot" style="background:#7b2cbf;"></span> Cajas y núcleos saturantes (d ≤ 3)</span>
@@ -3042,42 +3056,141 @@
 
     function buildWater() {
       waterClear(waterCoresGroup); waterClear(waterSitesGroup);
-      const P = WATER_PAIRS[waterPair], O = [0, 0, 0];
-      const atoms = [[O, waterNO], [P.h1, WATER_NH], [P.h2, WATER_NH]];
-      const cores = atoms.map(a => [a[0], WATER_CORE]);
+      const O = [0, 0, 0];
       waterCoresGroup.add(waterAtom(O, waterNO, 0xe5484d, 0xffb3b6));
-      waterCoresGroup.add(waterAtom(P.h1, WATER_NH, 0xf1f5f9, 0xffffff));
-      waterCoresGroup.add(waterAtom(P.h2, WATER_NH, 0xf1f5f9, 0xffffff));
 
-      // Sitios libres: dentro de la caja del atomo, fuera de su nucleo d <= 3
+      // Sitios libres del O: dentro de su caja, fuera de su nucleo d <= 3
       const pts = [];
-      let freeO = 0;
-      atoms.forEach(([c, N], k) => {
-        for (let dx = -N; dx <= N; dx++) for (let dy = -N; dy <= N; dy++) for (let dz = -N; dz <= N; dz++) {
-          if (Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz)) <= WATER_CORE) continue;
-          if (k === 0) freeO++;
-          if (k > 0) {
-            // el H se clona identico: densidad 1s de la pestaña 1 (solo sitios con densidad > corte)
-            const rho = Math.exp(-2.0 * Math.sqrt(dx * dx + dy * dy + dz * dz) / WATER_R0);
-            if (rho < WATER_CUT) continue;
-          }
-          pts.push(c[0] + dx, c[1] + dy, c[2] + dz);
-        }
-      });
+      const N = waterNO;
+      for (let dx = -N; dx <= N; dx++) for (let dy = -N; dy <= N; dy++) for (let dz = -N; dz <= N; dz++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz)) <= WATER_CORE) continue;
+        pts.push(dx, dy, dz);
+      }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-      waterSitesGroup.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x35ddff, size: 0.22, transparent: true, opacity: 0.7 })));
+      waterSitesGroup.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x35ddff, size: 0.18, transparent: true, opacity: 0.45 })));
 
       document.getElementById('w-no-badge').textContent = 'N = ' + waterNO;
       const side = 2 * waterNO + 1;
       document.getElementById('w-sites-txt').textContent =
         'Cubo (±' + waterNO + ')³ del O: ' + (side * side * side) + ' celdas, ' + (side * side * side - 343) +
-        ' sitios libres (se quitan las 343 de d ≤ 3). El O tiene 8 electrones.';
+        ' sitios libres (se quitan las 343 de d ≤ 3). El O tiene 8 electrones: 2 en el núcleo saturante y 6 de valencia que saltan.';
       document.getElementById('w-hfit-txt').textContent =
         'H: con la misma densidad 1s de la pestaña 1 (corte ' + WATER_CUT + ') el último sitio libre está en ' +
-        WATER_NH + ': cabe en (' + WATER_NH + ',' + WATER_NH + ',' + WATER_NH + ').';
+        WATER_NH + ': cabe en (' + WATER_NH + ',' + WATER_NH + ',' + WATER_NH + '). Falta definir dónde queda cada H respecto al O.';
       updateWaterLayers();
+      waterInitElectrons();
     }
+
+    // ---- Electrones del O: reglas 1 y 2; la exclusion es el determinante, no un `if` ----
+    // Regla 1: un electron solo salta a un sitio adyacente (un paso de eje).
+    // Regla 2: nunca dos en el mismo sitio. Es un resultado: la amplitud del estado es un
+    // determinante de Slater de los modos propios de salto de la caja (senos del espectro del
+    // camino); con dos electrones iguales en un sitio el determinante vale 0 y el paso no pasa.
+    const waterElecGroup = new THREE.Group();
+    waterGroup.add(waterElecGroup);
+    const W_COLORS = [0x10b981, 0x06b6d4, 0xf43f5e, 0xa855f7, 0x3b82f6, 0xec4899];
+    const W_START = [[4, 1, 1], [-1, -4, 1], [5, 0, 1], [-5, 0, -1], [0, 5, 0], [0, 0, 5]]; // e3..e8 del Visualizador-Oxigeno
+    const W_CORE_E = [[1, 1, 0], [-1, -1, 0]];                                            // e1, e2: saturantes, no saltan
+    let wElec = [], wMeshes = [], wOrb = [], wDet = 0, wHz = 60, wAcc = 0;
+    let wStat = { prop: 0, acc: 0, occ: 0, coin: 0 };
+
+    function waterOrbitals(N, count) {
+      const M = 2 * N + 1, list = [];
+      for (let a = 1; a <= M; a++) for (let b = 1; b <= M; b++) for (let c = 1; c <= M; c++) {
+        const E = [a, b, c].reduce((t, n) => t + 2 - 2 * Math.cos(Math.PI * n / (M + 1)), 0);
+        list.push({ n: [a, b, c], E });
+      }
+      list.sort((u, v) => u.E - v.E || u.n[0] - v.n[0] || u.n[1] - v.n[1] || u.n[2] - v.n[2]);
+      return list.slice(0, count).map(o => o.n);
+    }
+
+    function waterDet(sites) {
+      const N = waterNO, M = 2 * N + 1, n = sites.length;
+      const A = sites.map(r => wOrb.map(o => {
+        let v = 1;
+        for (let i = 0; i < 3; i++) v *= Math.sin(Math.PI * o[i] * (r[i] + N + 1) / (M + 1));
+        return v;
+      }));
+      let det = 1;
+      for (let i = 0; i < n; i++) {
+        let piv = i;
+        for (let r = i + 1; r < n; r++) if (Math.abs(A[r][i]) > Math.abs(A[piv][i])) piv = r;
+        if (Math.abs(A[piv][i]) < 1e-14) return 0;
+        if (piv !== i) { [A[piv], A[i]] = [A[i], A[piv]]; det = -det; }
+        det *= A[i][i];
+        for (let r = i + 1; r < n; r++) {
+          const f = A[r][i] / A[i][i];
+          for (let c = i; c < n; c++) A[r][c] -= f * A[i][c];
+        }
+      }
+      return det;
+    }
+
+    function waterInitElectrons() {
+      waterClear(waterElecGroup);
+      wMeshes = [];
+      const N = waterNO, clamp = v => Math.max(-N, Math.min(N, v));
+      wOrb = waterOrbitals(N, W_START.length);
+      wElec = W_START.map(r => r.map(clamp));
+      wDet = waterDet(wElec);
+      let guard = 0;
+      while (Math.abs(wDet) < 1e-9 && guard++ < 200) {   // arranque con amplitud no nula
+        const k = Math.floor(Math.random() * wElec.length), ax = Math.floor(Math.random() * 3);
+        const t = wElec[k].slice(); t[ax] += Math.random() < 0.5 ? -1 : 1;
+        if (Math.abs(t[ax]) > N || waterInCore(t)) continue;
+        wElec[k] = t; wDet = waterDet(wElec);
+      }
+      wElec.forEach((r, i) => {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 12), new THREE.MeshBasicMaterial({ color: W_COLORS[i] }));
+        m.position.set(...r); waterElecGroup.add(m); wMeshes.push(m);
+      });
+      W_CORE_E.forEach(r => {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffd166 }));
+        m.position.set(...r); waterElecGroup.add(m);
+      });
+      wStat = { prop: 0, acc: 0, occ: 0, coin: 0 };
+      waterShowStats();
+    }
+
+    function waterInCore(r) { return Math.max(Math.abs(r[0]), Math.abs(r[1]), Math.abs(r[2])) <= WATER_CORE; }
+
+    function waterStep() {
+      const N = waterNO, k = Math.floor(Math.random() * wElec.length), ax = Math.floor(Math.random() * 3);
+      const t = wElec[k].slice(); t[ax] += Math.random() < 0.5 ? -1 : 1;     // regla 1: sitio adyacente
+      wStat.prop++;
+      if (Math.abs(t[ax]) > N || waterInCore(t)) return;                      // fuera de la caja / nucleo saturante
+      if (wElec.some((r, i) => i !== k && r[0] === t[0] && r[1] === t[1] && r[2] === t[2])) wStat.occ++; // solo se cuenta
+      const old = wElec[k]; wElec[k] = t;
+      const dn = waterDet(wElec);
+      const ratio = wDet === 0 ? 1 : (dn * dn) / (wDet * wDet);              // |Psi'|^2 / |Psi|^2
+      if (Math.random() < ratio) {
+        wDet = dn; wStat.acc++;
+        wMeshes[k].position.set(...t);
+      } else wElec[k] = old;
+    }
+
+    function waterShowStats() {
+      let coin = 0;
+      for (let i = 0; i < wElec.length; i++) for (let j = i + 1; j < wElec.length; j++)
+        if (wElec[i][0] === wElec[j][0] && wElec[i][1] === wElec[j][1] && wElec[i][2] === wElec[j][2]) coin++;
+      wStat.coin = Math.max(wStat.coin, coin);
+      const el = document.getElementById('w-stats');
+      if (el) el.innerHTML = 'Pasos propuestos: <b>' + wStat.prop + '</b> · aceptados: <b>' + wStat.acc +
+        '</b><br>Intentos que caían en un sitio ocupado: <b>' + wStat.occ +
+        '</b> · coincidencias aceptadas: <b style="color:#10b981">' + wStat.coin + '</b>';
+    }
+
+    function waterTick(delta) {
+      if (!waterActive || !wElec.length) return;
+      wAcc += Math.min(delta, 0.1) * wHz;
+      let n = Math.floor(wAcc); wAcc -= n;
+      n = Math.min(n, 400);
+      for (let i = 0; i < n; i++) waterStep();
+      if (n > 0) waterShowStats();
+    }
+
+    function setWaterHz(v) { wHz = Math.max(1, Math.min(1000, parseInt(v, 10) || 60)); document.getElementById('w-hz-badge').textContent = wHz + ' Hz'; }
 
     function updateWaterLayers() {
       waterCoresGroup.visible = document.getElementById('w-t-cores').checked;
@@ -3093,8 +3206,8 @@
         hydro.forEach(g => { g.visible = false; });
         waterGroup.visible = true;
         buildWater();
-        camTargetPos = new THREE.Vector3(20, 26, 48);
-        camTargetLook = new THREE.Vector3(-8, -4, 0);
+        camTargetPos = new THREE.Vector3(18, 16, 24);
+        camTargetLook = new THREE.Vector3(0, 0, 0);
         camLerpFactor = 0.08;
       } else {
         waterGroup.visible = false;
@@ -3164,6 +3277,7 @@
       requestAnimationFrame(animate);
 
       const delta = clock.getDelta();
+      waterTick(delta);
       const elapsed = clock.getElapsedTime();
 
       // Camera Smooth Interpolation
