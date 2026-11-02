@@ -1,5 +1,18 @@
 # RS^N³ · Hidrógeno
 
+<div align="center">
+  <video src="https://raw.githubusercontent.com/naype888-cloud/nrs3-hidrogeno/main/docs/media/intro.mp4" width="100%" controls autoplay loop muted playsinline></video>
+  <p>
+    <a href="https://naype888-cloud.github.io/nrs3-hidrogeno/">
+      <img src="docs/media/intro.svg" alt="RS^N³ · Hidrógeno — Átomo en enteros y bola de Bloch" width="100%">
+    </a>
+  </p>
+  <p>
+    <strong><a href="https://naype888-cloud.github.io/nrs3-hidrogeno/">▶ naype888-cloud.github.io/nrs3-hidrogeno</a></strong> · 
+    <a href="https://naype888-cloud.github.io/nrs3-hidrogeno/Visualizador-Hidrogeno-NRS3-Bloch-Cubo.html">Visualizador 3D interactivo</a>
+  </p>
+</div>
+
 **El átomo de hidrógeno sobre los sitios enteros del cubo RS^N³.** La única forma de moverse es el
 paso de eje, el `T_d` de cada eje (`D37`, `D39`); la celda del núcleo no lleva posición, solo un
 estado; y ninguna cota depende de la celda `a` ni del tamaño de la caja. Lean 4 con Mathlib, sin
