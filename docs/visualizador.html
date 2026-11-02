@@ -1030,7 +1030,6 @@
         <div class="control-card">
           <div class="control-title">
             <span>H₂O: el mismo cubo, un átomo por caja</span>
-            <span class="badge badge-gold" id="w-angle-badge">—</span>
           </div>
           <p class="control-desc">
             Cada átomo parte del mismo centro: el cubo <code>d ≤ 3</code> (hasta <code>(3,3,3)</code>) está
@@ -1041,22 +1040,12 @@
 
         <div class="control-card">
           <div class="control-title">
-            <span>Caja del oxígeno (N, N, N)</span>
-            <span class="badge badge-purple" id="w-no-badge">N = 10</span>
+            <span>Caja del oxígeno (N, N, N) · la 15³ del Visualizador-Oxígeno</span>
+            <span class="badge badge-purple" id="w-no-badge">N = 7</span>
           </div>
-          <input type="range" id="w-slider-no" min="4" max="14" step="1" value="10" oninput="setWaterNO(this.value)">
+          <input type="range" id="w-slider-no" min="4" max="14" step="1" value="7" oninput="setWaterNO(this.value)">
           <p class="control-desc" id="w-sites-txt"></p>
           <p class="control-desc" id="w-hfit-txt"></p>
-        </div>
-
-        <div class="control-card">
-          <div class="control-title"><span>Posición de los H</span></div>
-          <div class="btn-group">
-            <button class="action-btn" onclick="setWaterPair(0)">(±15, −11, 4)</button>
-            <button class="action-btn secondary" onclick="setWaterPair(1)">(±15, −11, 0)</button>
-            <button class="action-btn secondary" onclick="setWaterPair(2)">(±15, −12, 0)</button>
-          </div>
-          <p class="control-desc">Los enlaces son pasos de eje por los sitios libres entre los núcleos. Ángulo experimental del H₂O: 104.5°.</p>
         </div>
 
         <div class="control-card">
@@ -1068,10 +1057,6 @@
           <div class="toggle-row">
             <span class="toggle-label"><span class="indicator-dot" style="background:var(--accent-cyan);"></span> Sitios libres (d ≥ 4)</span>
             <label class="switch"><input type="checkbox" id="w-t-sites" checked onchange="updateWaterLayers()"><span class="slider"></span></label>
-          </div>
-          <div class="toggle-row">
-            <span class="toggle-label"><span class="indicator-dot" style="background:var(--accent-orange);"></span> Pasos de eje del enlace</span>
-            <label class="switch"><input type="checkbox" id="w-t-steps" checked onchange="updateWaterLayers()"><span class="slider"></span></label>
           </div>
         </div>
       </div>
@@ -2984,8 +2969,7 @@
     const waterGroup = new THREE.Group();
     const waterCoresGroup = new THREE.Group();
     const waterSitesGroup = new THREE.Group();
-    const waterStepsGroup = new THREE.Group();
-    waterGroup.add(waterCoresGroup, waterSitesGroup, waterStepsGroup);
+    waterGroup.add(waterCoresGroup, waterSitesGroup);
     waterGroup.visible = false;
     mainScene.add(waterGroup);
     const WATER_CORE = 3;            // 0,1,2,3: estados saturantes del atomo, sin sitios
@@ -2995,7 +2979,7 @@
       { h1: [-15, -11, 0], h2: [15, -11, 0] },
       { h1: [-15, -12, 0], h2: [15, -12, 0] }
     ];
-    let waterNO = 10, waterPair = 0, waterActive = false;
+    let waterNO = 7, waterPair = 0, waterActive = false; // O: caja 15x15x15 (N = 7), la del Visualizador-Oxigeno
 
     // N del H: el mayor |coordenada| de un sitio libre (d >= 4) con densidad 1s > corte
     function waterHFit() {
@@ -3057,7 +3041,7 @@
     }
 
     function buildWater() {
-      waterClear(waterCoresGroup); waterClear(waterSitesGroup); waterClear(waterStepsGroup);
+      waterClear(waterCoresGroup); waterClear(waterSitesGroup);
       const P = WATER_PAIRS[waterPair], O = [0, 0, 0];
       const atoms = [[O, waterNO], [P.h1, WATER_NH], [P.h2, WATER_NH]];
       const cores = atoms.map(a => [a[0], WATER_CORE]);
@@ -3084,18 +3068,6 @@
       geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
       waterSitesGroup.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x35ddff, size: 0.22, transparent: true, opacity: 0.7 })));
 
-      // Enlaces: palabra de pasos de eje por sitios libres (fuera de todo nucleo)
-      [P.h1, P.h2].forEach(h => {
-        waterStepWord(h).forEach(p => {
-          if (cores.some(([c, n]) => waterInBox(p, c, n))) return;
-          const m = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), new THREE.MeshBasicMaterial({ color: 0xff6b35 }));
-          m.position.set(...p);
-          waterStepsGroup.add(m);
-        });
-      });
-
-      const ang = waterAngle(P.h1, P.h2).toFixed(2) + '°';
-      document.getElementById('w-angle-badge').textContent = 'H–O–H ' + ang;
       document.getElementById('w-no-badge').textContent = 'N = ' + waterNO;
       const side = 2 * waterNO + 1;
       document.getElementById('w-sites-txt').textContent =
@@ -3110,11 +3082,9 @@
     function updateWaterLayers() {
       waterCoresGroup.visible = document.getElementById('w-t-cores').checked;
       waterSitesGroup.visible = document.getElementById('w-t-sites').checked;
-      waterStepsGroup.visible = document.getElementById('w-t-steps').checked;
     }
 
-    function setWaterNO(v) { waterNO = Math.max(4, Math.min(14, parseInt(v, 10) || 10)); buildWater(); }
-    function setWaterPair(i) { waterPair = i; buildWater(); }
+    function setWaterNO(v) { waterNO = Math.max(4, Math.min(14, parseInt(v, 10) || 7)); buildWater(); }
 
     function setWaterMode(on) {
       waterActive = on;
