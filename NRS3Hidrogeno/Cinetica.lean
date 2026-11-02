@@ -1,5 +1,5 @@
 import Mathlib
-import NRS3Hidrogeno.Cubo
+import NRS3Hidrogeno.Sitios
 
 /-!
 # The kinetic form of the cube is `⟨ψ, (6 - A) ψ⟩ / (2 a²)`

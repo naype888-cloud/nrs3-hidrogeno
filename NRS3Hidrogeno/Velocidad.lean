@@ -1,5 +1,5 @@
 import Mathlib
-import NRS3Hidrogeno.Cubo
+import NRS3Hidrogeno.Sitios
 
 /-!
 # The speed cap of the cube
