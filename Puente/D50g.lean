@@ -86,7 +86,9 @@ calibration is not used). The duration of a step is `a / c`. -/
 structure PhysicalStep where
   /-- Side of a cell. -/
   a : ℝ
-  /-- Speed of light. -/
+  /-- The `c` of the system: the speed of the maximal current state (`|v| = 1` in the units of
+  `D38`). For the system we live in it is the speed of light in vacuum; the same formula applied to
+  the electron alone would give its own `c`, `ħ / (m a)` (`Escala.lean`). -/
   c : ℝ
   /-- Planck length. -/
   lP : ℝ
