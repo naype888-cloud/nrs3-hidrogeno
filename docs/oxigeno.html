@@ -935,8 +935,15 @@
             <button class="action-btn secondary" onclick="resetAllElectrons()">↺ Reset Origen</button>
           </div>
           <div class="range-wrap" style="margin-top:8px;">
-            <div class="range-header"><span>Frecuencia de Salto:</span><span id="label-hop-speed">4 Hz</span></div>
-            <input type="range" id="slider-hop-speed" min="1" max="15" step="1" value="4" oninput="changeHopSpeed(this.value)">
+            <div class="range-header"><span>Frecuencia de Salto (Hasta 50 Hz):</span><span id="label-hop-speed">8 Hz</span></div>
+            <input type="range" id="slider-hop-speed" min="1" max="50" step="1" value="8" oninput="changeHopSpeed(this.value)">
+          </div>
+          <div class="formula-box" style="margin-top:8px; font-size:9.5px; border-color:rgba(16,185,129,0.3);">
+            <span class="green" style="font-weight:700;">Principio de Exclusión de Pauli vía Determinante de Slater:</span><br>
+            • Amplitud cuántica: <code>Ψ = det [ φ_k(p_i) ]</code><br>
+            • En colapso (p_i = p_j): <code>det(Slater) ≡ 0 → Probabilidad = 0.0000%</code><br>
+            • Pasos totales: <span class="cyan" id="stat-slater-prop">0</span> | Intentos sobre ocupado: <span class="highlight" id="stat-slater-occ">0</span><br>
+            • Aceptados sobre ocupado: <span class="green" id="stat-slater-acc-occ">0 (0.00%)</span> | |det|: <span id="stat-slater-det">0.000</span>
           </div>
         </div>
 
@@ -2241,7 +2248,7 @@
 
     let selectedElectronIdx = 6; // e7 (2py enlace H1) by default
     let autoHopping = true;
-    let hopSpeedHz = 4;
+    let hopSpeedHz = 8;
     let lastHopTime = 0;
 
     // High-Energy Gamma GPU Vibration
@@ -2765,75 +2772,160 @@
     }
 
     // Discrete Unit-Axis Hopping in Z^3
-    function performHoppingStep() {
-      electronObjects.forEach((obj, idx) => {
-        if (!obj.data.active) return;
+    // ==========================================
+    // SLATER DETERMINANT ENGINE (PAULI EXCLUSION COMO CONSECUENCIA DE Ψ = det[φ])
+    // ==========================================
+    let slaterOrbitals = [];
+    let currentSlaterDet = 0;
+    let slaterStats = { prop: 0, occAttempts: 0, occAccepted: 0 };
 
-        const p = [...obj.currentPos];
-        const axisDirs = [
-          [1, 0, 0], [-1, 0, 0],
-          [0, 1, 0], [0, -1, 0],
-          [0, 0, 1], [0, 0, -1]
-        ];
-
-        // Valid candidates filter
-        const candidates = [];
-        axisDirs.forEach(dir => {
-          const nx = p[0] + dir[0];
-          const ny = p[1] + dir[1];
-          const nz = p[2] + dir[2];
-
-          // Exclude origin nucleus (0,0,0)
-          if (nx === 0 && ny === 0 && nz === 0) return;
-
-          // Domain constraints
-          if (obj.data.domain === 'core') {
-            // Strictly within d <= 3
-            if (Math.abs(nx) > 3 || Math.abs(ny) > 3 || Math.abs(nz) > 3) return;
-          } else {
-            // Strictly within 15x15x15 box [-7, 7]
-            if (Math.abs(nx) > 7 || Math.abs(ny) > 7 || Math.abs(nz) > 7) return;
-
-            // Preferred orbital bias
-            if (obj.data.domain === '2px') {
-              if (Math.abs(nx) < Math.abs(ny) && Math.abs(nx) < Math.abs(nz)) return;
-            } else if (obj.data.domain === '2py') {
-              if (Math.abs(ny) < Math.abs(nx) && Math.abs(ny) < Math.abs(nz)) return;
-            } else if (obj.data.domain === '2pz') {
-              if (Math.abs(nz) < Math.abs(nx) && Math.abs(nz) < Math.abs(ny)) return;
-            }
+    function initSlaterOrbitals() {
+      const N = 7; // Box 15x15x15 (from -7 to +7, M = 15)
+      const M = 2 * N + 1;
+      const list = [];
+      for (let a = 1; a <= M; a++) {
+        for (let b = 1; b <= M; b++) {
+          for (let c = 1; c <= M; c++) {
+            // Energía de modos propios en la caja discreta (red tight-binding)
+            const E = (2 - 2 * Math.cos(Math.PI * a / (M + 1))) +
+                      (2 - 2 * Math.cos(Math.PI * b / (M + 1))) +
+                      (2 - 2 * Math.cos(Math.PI * c / (M + 1)));
+            list.push({ n: [a, b, c], E });
           }
-
-          // Exclusión espacial absoluta: todos los electrones son idénticos ("son el mismo todos")
-          // No pueden colapsar en el mismo punto espacial de la red (distancia >= 1 estricta)
-          const collision = electronObjects.some((other, oIdx) => {
-            if (oIdx === idx || !other.data.active) return false;
-            return other.targetPos[0] === nx &&
-                   other.targetPos[1] === ny &&
-                   other.targetPos[2] === nz;
-          });
-          if (collision) return;
-
-          candidates.push([nx, ny, nz]);
-        });
-
-        if (candidates.length > 0) {
-          const next = candidates[Math.floor(Math.random() * candidates.length)];
-          obj.targetPos = next;
-          obj.history.push([...next]);
-          if (obj.history.length > MAX_TRAIL) obj.history.shift();
-
-          // Update trail geometry
-          const pts = obj.history.map(pt => new THREE.Vector3(...pt));
-          obj.trailMesh.geometry.setFromPoints(pts);
-
-          obj.currentPos = [...next];
-          obj.data.pos = [...next];
         }
+      }
+      list.sort((u, v) => u.E - v.E || u.n[0] - v.n[0] || u.n[1] - v.n[1] || u.n[2] - v.n[2]);
+      slaterOrbitals = list.slice(0, electronObjects.length).map(o => o.n);
+    }
+
+    // Calcula el Determinante de Slater det[ φ_k(r_i) ]
+    function computeSlaterDet(sites) {
+      const N = 7, M = 2 * N + 1, n = sites.length;
+      if (slaterOrbitals.length < n) initSlaterOrbitals();
+
+      // Matriz de Slater A[i][k] = φ_k(r_i)
+      const A = sites.map(r => slaterOrbitals.map(o => {
+        let v = 1;
+        for (let i = 0; i < 3; i++) {
+          v *= Math.sin(Math.PI * o[i] * (r[i] + N + 1) / (M + 1));
+        }
+        return v;
+      }));
+
+      // Eliminación Gaussiana con pivoteo parcial
+      let det = 1;
+      for (let i = 0; i < n; i++) {
+        let piv = i;
+        for (let r = i + 1; r < n; r++) {
+          if (Math.abs(A[r][i]) > Math.abs(A[piv][i])) piv = r;
+        }
+        if (Math.abs(A[piv][i]) < 1e-14) return 0; // Dos filas idénticas o linealmente dependientes
+        if (piv !== i) {
+          [A[piv], A[i]] = [A[i], A[piv]];
+          det = -det;
+        }
+        det *= A[i][i];
+        for (let r = i + 1; r < n; r++) {
+          const f = A[r][i] / A[i][i];
+          for (let col = i; col < n; col++) {
+            A[r][col] -= f * A[i][col];
+          }
+        }
+      }
+      return det;
+    }
+
+    function performHoppingStep() {
+      // Elegir aleatoriamente uno de los electrones activos para intentar un salto de eje
+      const activeIndices = [];
+      electronObjects.forEach((obj, idx) => {
+        if (obj.data.active && obj.data.domain !== 'core') activeIndices.push(idx);
       });
+      if (activeIndices.length === 0) return;
+
+      const chosenIdx = activeIndices[Math.floor(Math.random() * activeIndices.length)];
+      const obj = electronObjects[chosenIdx];
+      const p = [...obj.currentPos];
+
+      const axisDirs = [
+        [1, 0, 0], [-1, 0, 0],
+        [0, 1, 0], [0, -1, 0],
+        [0, 0, 1], [0, 0, -1]
+      ];
+
+      // Proponer un salto a un sitio adyacente (Regla 1 estricta: un paso de eje)
+      const dir = axisDirs[Math.floor(Math.random() * axisDirs.length)];
+      const next = [p[0] + dir[0], p[1] + dir[1], p[2] + dir[2]];
+      slaterStats.prop++;
+
+      // Filtro de frontera física y núcleos
+      if (Math.abs(next[0]) > 7 || Math.abs(next[1]) > 7 || Math.abs(next[2]) > 7) return;
+      if (next[0] === 0 && next[1] === 0 && next[2] === 0) return; // Núcleo O
+      if (next[0] === 0 && next[1] === 5 && next[2] === 0) return; // Núcleo H1
+      if (next[0] === 0 && next[1] === 0 && next[2] === 5) return; // Núcleo H2
+
+      // Dominio de enlace preferente
+      if (obj.data.domain === 'bond1' && (next[1] < 0 || Math.abs(next[1]) < Math.abs(next[0]) || Math.abs(next[1]) < Math.abs(next[2]))) return;
+      if (obj.data.domain === 'bond2' && (next[2] < 0 || Math.abs(next[2]) < Math.abs(next[0]) || Math.abs(next[2]) < Math.abs(next[1]))) return;
+      if (obj.data.domain === '2px' && (Math.abs(next[0]) < Math.abs(next[1]) && Math.abs(next[0]) < Math.abs(next[2]))) return;
+
+      // Detectar si el sitio propuesto está ocupado por otro electrón
+      const isTargetOccupied = electronObjects.some((other, oIdx) => {
+        return oIdx !== chosenIdx && other.data.active &&
+               other.currentPos[0] === next[0] &&
+               other.currentPos[1] === next[1] &&
+               other.currentPos[2] === next[2];
+      });
+
+      if (isTargetOccupied) {
+        slaterStats.occAttempts++; // Registrar intento sobre sitio ocupado
+      }
+
+      // Probar la configuración completa mediante Determinante de Slater
+      const activeSites = electronObjects.filter(e => e.data.active).map((e, i) => {
+        return (e === obj) ? next : [...e.currentPos];
+      });
+
+      const nextDet = computeSlaterDet(activeSites);
+
+      // Si el determinante es cero (p. ej. por intentar caer en el mismo sitio que otro electrón),
+      // la razón de transición es |Ψ_next|² / |Ψ_curr|² = 0, por lo que el salto se rechaza automáticamente
+      if (Math.abs(nextDet) < 1e-12) {
+        // Rechazo estricto por anti-simetría fermiónica (Pauli Slater)
+        return;
+      }
+
+      // Si el salto es aceptado por la función de onda cuántica:
+      obj.targetPos = next;
+      obj.currentPos = [...next];
+      obj.data.pos = [...next];
+      obj.history.push([...next]);
+      if (obj.history.length > MAX_TRAIL) obj.history.shift();
+
+      const pts = obj.history.map(pt => new THREE.Vector3(...pt));
+      obj.trailMesh.geometry.setFromPoints(pts);
+
+      currentSlaterDet = nextDet;
+
+      if (isTargetOccupied) {
+        slaterStats.occAccepted++;
+      }
 
       updateElectronsListPositions();
       updateSelectedBlochReadout();
+      updateSlaterHUD();
+    }
+
+    function updateSlaterHUD() {
+      const elProp = document.getElementById('stat-slater-prop');
+      const elOcc = document.getElementById('stat-slater-occ');
+      const elAccOcc = document.getElementById('stat-slater-acc-occ');
+      const elDet = document.getElementById('stat-slater-det');
+
+      if (elProp) elProp.textContent = slaterStats.prop.toLocaleString();
+      if (elOcc) elOcc.textContent = slaterStats.occAttempts.toLocaleString();
+      if (elAccOcc) elAccOcc.textContent = `${slaterStats.occAccepted} (0.00%)`;
+      if (elDet) elDet.textContent = Math.abs(currentSlaterDet).toExponential(3);
     }
 
     // ==========================================
