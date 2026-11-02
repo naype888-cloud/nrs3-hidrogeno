@@ -71,8 +71,11 @@ El límite de velocidad de un estado de Dirac con masa `m`, `|⟨V⟩| ≤ √(1
 
 ### El primer defecto y el primer tiempo (`d = 4`)
 
-El defecto es el exceso de la razón sobre 1, `δ(d) = C_N(d) − 1`; saturar es `δ = 0`, y solo pasa en
-`d = 2, 3`. No se acerca a 0 al crecer `d`: sube de `δ(4) ≈ 0.00848` a `δ∞ ≈ 0.1357`, que ningún `d`
+El defecto estricto de Robertson desde `d = 4` es la **incertidumbre elemental dimensional** del
+[teorema base](https://github.com/naype888-cloud/nava-robertson-schrodinger): el exceso de la razón
+sobre 1, `δ(d) = C_N(d) − 1`. Saturar es `δ = 0`, y solo pasa en `d = 2, 3`. En `4 × 4 × 4` es el
+cuanto irreducible (`navaRobertsonSchrodinger_octahedron`, `D43`; `strict_inequality_of_maxTension`,
+`D21`): ángulo mínimo `θ_NRS(4) ≈ 7.43°` y razón `1/C_N(4)² = 5/(99 − 42√5) ≈ 0.9833`. No se acerca a 0 al crecer `d`: sube de `δ(4) ≈ 0.00848` a `δ∞ ≈ 0.1357`, que ningún `d`
 alcanza. Un paso dura `ℓ_P/c` en el piso, y el retraso del defecto es `δ · ℓ_P/c`.
 
 | Enunciado | Lean |
