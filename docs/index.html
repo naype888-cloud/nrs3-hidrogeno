@@ -23,7 +23,7 @@
 <main class="stage">
   <section class="hero" aria-labelledby="title">
     <figure class="scene">
-      <canvas id="lattice" tabindex="0" role="img" aria-label="El átomo de hidrógeno sobre la red cúbica entera: núcleo en (0,0,0) con su esfera de Bloch (d=2), saltos en los 6 ejes y conos de defecto en las esquinas."></canvas>
+      <canvas id="lattice" tabindex="0" role="img" aria-label="El átomo de hidrógeno sobre la red cúbica entera: el núcleo con su esfera de Bloch (d=2), saltos en los 6 ejes y conos de defecto en las esquinas."></canvas>
       <p class="readout" id="readout" aria-live="polite"><b>d ≤ 3 cerrado</b> · Hardy 1/4 · <b>Δ<sub>RS</sub> = 1 − ‖v‖²</b></p>
       <noscript><img class="fallback" src="media/banner.svg" alt="RS^N³ · Hidrógeno"></noscript>
       <figcaption><span id="cap">[-M, M]³ · el átomo en enteros</span><span class="hint"> · clic / arrastra para girar</span></figcaption>
@@ -36,13 +36,13 @@
       <div class="rule" aria-hidden="true"><span></span></div>
 
       <ol class="ticker" aria-label="Los ocho resultados">
-        <li class="on"><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/Sitios.lean"><span class="n">01 / 08</span><span class="name">El átomo sobre sitios enteros</span><code>cuboE · radiusE_ge (p ∈ ℤ³)</code></a></li>
+        <li class="on"><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/CuboEntero.lean"><span class="n">01 / 08</span><span class="name">El átomo sobre sitios enteros</span><code>cuboE · radiusE_ge (p ∈ ℤ³)</code></a></li>
         <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/Cinetica.lean"><span class="n">02 / 08</span><span class="name">Cinética de saltos de eje</span><code>kineticFull_eq · ρ_x T_x + ρ_y T_y + ρ_z T_z</code></a></li>
         <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/HardyEntero.lean"><span class="n">03 / 08</span><span class="name">Hardy en los sitios enteros (1/4)</span><code>hardy_entero · (1/4) Σ ψ²/r² ≤ Σ (Δψ)²</code></a></li>
-        <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/HardyEntero.lean"><span class="n">04 / 08</span><span class="name">Energía acotada sin celda ni tamaño</span><code>energyE_ge_hardy ≥ −2k² · le_groundE_hardy</code></a></li>
+        <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/CuboEntero.lean"><span class="n">04 / 08</span><span class="name">Energía acotada sin celda ni tamaño</span><code>energyE_ge_hardy ≥ −2k² · le_groundE_hardy</code></a></li>
         <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/LimiteEntero.lean"><span class="n">05 / 08</span><span class="name">Las cajas convergen al ínfimo E∞</span><code>tendsto_levelsE · limitE_bounds</code></a></li>
         <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/Cierre.lean"><span class="n">06 / 08</span><span class="name">Cierre de álgebras exactamente en d ≤ 3</span><code>Cierre.closes_iff · [T,[T,P]] ∈ span{P,1}</code></a></li>
-        <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/Espin.lean"><span class="n">07 / 08</span><span class="name">Espín 1/2 y espín 1 en el núcleo</span><code>Espin.Tp_two = σ_x · Casimir T²+Y²+2Z² = 4</code></a></li>
+        <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/Espin.lean"><span class="n">07 / 08</span><span class="name">Espín 1/2 y espín 1 en d = 2, 3</span><code>Espin.Tp_two = σ_x · Casimir T²+Y²+2Z² = 4</code></a></li>
         <li><a href="https://github.com/naype888-cloud/nrs3-hidrogeno/blob/main/NRS3Hidrogeno/EscalaEntero.lean"><span class="n">08 / 08</span><span class="name">Escala de Compton y tope de velocidad</span><code>compton_eq_alpha_bohr · bohr_speed = α c</code></a></li>
       </ol>
       <div class="progress" aria-hidden="true"><span></span></div>
@@ -55,7 +55,7 @@
     <a class="door" href="visualizador.html">
       <span class="k">Instrumento 3D</span>
       <span class="t">Visualizador completo de Bloch y el Cubo</span>
-      <span class="d">Esfera de Bloch en (0,0,0), hopping continuo en los 6 ejes, esquinas moradas de defecto ρ(4) = 0.0729 y telemetría Robertson.</span>
+      <span class="d">La esfera de Bloch del núcleo, saltos de eje discretos en los 6 sentidos, esquinas moradas de defecto ρ(4) = 0.0729 y telemetría Robertson.</span>
       <span class="go" aria-hidden="true"></span>
     </a>
     <a class="door" href="https://github.com/naype888-cloud/nrs3-hidrogeno">
