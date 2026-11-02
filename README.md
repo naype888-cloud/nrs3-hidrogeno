@@ -95,6 +95,19 @@ Con `Jₓ = T/√2`, `J_y = Y/√2`, `J_z = Z`. El álgebra de Pauli de `σ` est
 [`nrs3-pauli-dirac`](https://github.com/naype888-cloud/nrs3-pauli-dirac) (`sigma_anticomm`,
 `sigma_mul`, `no_four_anticommuting`).
 
+### El cubo abierto, del mismo cierre (corpus)
+
+Las mismas relaciones, `[P, [T, P]] = −h² T` para todo `d` y el cierre de `D49i` solo en
+`d = 2, 3`, son la herramienta del cubo abierto en el
+[teorema base](https://github.com/naype888-cloud/nava-robertson-schrodinger). No se repiten aquí:
+
+| Enunciado | Lean (corpus) |
+|---|---|
+| En el estado de corriente máxima del cubo, `det Σ` es el producto de los de cada eje; la razón es `C_N(dx)² C_N(dy)² C_N(dz)²`, que vale `1` solo si todo eje tiene 2 o 3 posiciones | `det_covMatrix_maxCurrentCubeState` (`D49c`) |
+| Desde `4 × 4 × 4` es estricta en ese estado | `robertson_det_maxCurrentCubeState_strict` (`D49c`) |
+| Con las velocidades de los tres ejes en su banda `Ϙ(d)`, `\|det Ω\| < det Σ` para **todo** estado, sin producto ni ejes canónicos | `robertson_det_band_strict` (`D49t`) |
+| Un eje libre no deja ningún estado en la igualdad: `T Φ = 0` y `[T, P] Φ = 0` fuerzan `Φ = 0` | `D49l`, `D49n`, `D49r`, `D49s` |
+
 ## Lo que no está probado
 
 - Que `E∞` sea el nivel de Rydberg.
