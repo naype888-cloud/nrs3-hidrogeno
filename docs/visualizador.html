@@ -756,6 +756,7 @@
       <button class="tab-btn" id="tab-btn-2" onclick="switchTab(2)">2. Hopping</button>
       <button class="tab-btn" id="tab-btn-3" onclick="switchTab(3)">3. Bola Bloch</button>
       <button class="tab-btn" id="tab-btn-4" onclick="switchTab(4)">4. Teoremas Lean</button>
+      <button class="tab-btn" id="tab-btn-5" onclick="switchTab(5)">5. H²O</button>
     </div>
 
     <!-- Scrollable Content -->
@@ -1023,6 +1024,57 @@
         </div>
       </div>
 
+
+      <!-- TAB 5: H2O -->
+      <div class="tab-pane" id="tab-5">
+        <div class="control-card">
+          <div class="control-title">
+            <span>H₂O: el mismo cubo, un átomo por caja</span>
+            <span class="badge badge-gold" id="w-angle-badge">—</span>
+          </div>
+          <p class="control-desc">
+            Cada átomo parte del mismo centro: el cubo <code>d ≤ 3</code> (hasta <code>(3,3,3)</code>) está
+            reservado a sus estados saturantes (el qubit de Bloch) y no tiene sitios. Todo lo demás es para
+            electrones y Coulomb. El H se clona idéntico a la pestaña 1; el O trae su propia caja.
+          </p>
+        </div>
+
+        <div class="control-card">
+          <div class="control-title">
+            <span>Caja del oxígeno (N, N, N)</span>
+            <span class="badge badge-purple" id="w-no-badge">N = 10</span>
+          </div>
+          <input type="range" id="w-slider-no" min="4" max="14" step="1" value="10" oninput="setWaterNO(this.value)">
+          <p class="control-desc" id="w-sites-txt"></p>
+          <p class="control-desc" id="w-hfit-txt"></p>
+        </div>
+
+        <div class="control-card">
+          <div class="control-title"><span>Posición de los H</span></div>
+          <div class="btn-group">
+            <button class="action-btn" onclick="setWaterPair(0)">(±15, −11, 4)</button>
+            <button class="action-btn secondary" onclick="setWaterPair(1)">(±15, −11, 0)</button>
+            <button class="action-btn secondary" onclick="setWaterPair(2)">(±15, −12, 0)</button>
+          </div>
+          <p class="control-desc">Los enlaces son pasos de eje por los sitios libres entre los núcleos. Ángulo experimental del H₂O: 104.5°.</p>
+        </div>
+
+        <div class="control-card">
+          <div class="control-title"><span>Capas del H₂O</span></div>
+          <div class="toggle-row">
+            <span class="toggle-label"><span class="indicator-dot" style="background:#7b2cbf;"></span> Cajas y núcleos saturantes (d ≤ 3)</span>
+            <label class="switch"><input type="checkbox" id="w-t-cores" checked onchange="updateWaterLayers()"><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label"><span class="indicator-dot" style="background:var(--accent-cyan);"></span> Sitios libres (d ≥ 4)</span>
+            <label class="switch"><input type="checkbox" id="w-t-sites" checked onchange="updateWaterLayers()"><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label"><span class="indicator-dot" style="background:var(--accent-orange);"></span> Pasos de eje del enlace</span>
+            <label class="switch"><input type="checkbox" id="w-t-steps" checked onchange="updateWaterLayers()"><span class="slider"></span></label>
+          </div>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -2926,6 +2978,160 @@
     }
 
     // UI Tab Navigation
+    // ==========================================
+    // 12. H2O (pestaña 5): un atomo por caja, mismo centro d <= 3 saturante
+    // ==========================================
+    const waterGroup = new THREE.Group();
+    const waterCoresGroup = new THREE.Group();
+    const waterSitesGroup = new THREE.Group();
+    const waterStepsGroup = new THREE.Group();
+    waterGroup.add(waterCoresGroup, waterSitesGroup, waterStepsGroup);
+    waterGroup.visible = false;
+    mainScene.add(waterGroup);
+    const WATER_CORE = 3;            // 0,1,2,3: estados saturantes del atomo, sin sitios
+    const WATER_R0 = 2.4, WATER_CUT = 0.015; // la misma densidad 1s de la pestaña 1
+    const WATER_PAIRS = [
+      { h1: [-15, -11, 4], h2: [15, -11, 4] },
+      { h1: [-15, -11, 0], h2: [15, -11, 0] },
+      { h1: [-15, -12, 0], h2: [15, -12, 0] }
+    ];
+    let waterNO = 10, waterPair = 0, waterActive = false;
+
+    // N del H: el mayor |coordenada| de un sitio libre (d >= 4) con densidad 1s > corte
+    function waterHFit() {
+      let m = 0;
+      for (let x = -12; x <= 12; x++) for (let y = -12; y <= 12; y++) for (let z = -12; z <= 12; z++) {
+        if (Math.max(Math.abs(x), Math.abs(y), Math.abs(z)) <= WATER_CORE) continue;
+        const rho = Math.exp(-2.0 * Math.sqrt(x * x + y * y + z * z) / WATER_R0);
+        if (rho >= WATER_CUT) m = Math.max(m, Math.abs(x), Math.abs(y), Math.abs(z));
+      }
+      return m;
+    }
+    const WATER_NH = waterHFit();
+
+    function waterInBox(p, c, N) {
+      return Math.abs(p[0] - c[0]) <= N && Math.abs(p[1] - c[1]) <= N && Math.abs(p[2] - c[2]) <= N;
+    }
+
+    function waterAngle(a, b) {
+      const d = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+      return Math.acos(d / (Math.hypot(...a) * Math.hypot(...b))) * 180 / Math.PI;
+    }
+
+    function waterStepWord(v) {
+      const cur = [0, 0, 0], path = [], tot = v.map(Math.abs), done = [0, 0, 0];
+      const n = tot[0] + tot[1] + tot[2];
+      for (let k = 0; k < n; k++) {
+        let best = -1, bs = -Infinity;
+        for (let i = 0; i < 3; i++) {
+          if (done[i] >= tot[i]) continue;
+          const sc = tot[i] * (k + 1) / n - done[i];
+          if (sc > bs) { bs = sc; best = i; }
+        }
+        cur[best] += Math.sign(v[best]); done[best]++; path.push([...cur]);
+      }
+      return path;
+    }
+
+    function waterClear(g) {
+      while (g.children.length > 0) {
+        const c = g.children[0]; g.remove(c);
+        if (c.geometry) c.geometry.dispose();
+      }
+    }
+
+    function waterAtom(center, N, color, wire) {
+      const g = new THREE.Group();
+      const side = 2 * N + 1, cs = 2 * WATER_CORE + 1;
+      const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(side, side, side)),
+        new THREE.LineBasicMaterial({ color: wire, transparent: true, opacity: 0.55 }));
+      const core = new THREE.Mesh(new THREE.BoxGeometry(cs, cs, cs),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.12, depthWrite: false }));
+      core.add(new THREE.LineSegments(new THREE.EdgesGeometry(core.geometry), new THREE.LineBasicMaterial({ color: wire })));
+      const sph = new THREE.Mesh(new THREE.SphereGeometry(WATER_CORE * 0.8, 24, 16),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.30, wireframe: true }));
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.25, 12, 10), new THREE.MeshBasicMaterial({ color: wire }));
+      g.add(box, core, sph, dot);
+      g.position.set(...center);
+      return g;
+    }
+
+    function buildWater() {
+      waterClear(waterCoresGroup); waterClear(waterSitesGroup); waterClear(waterStepsGroup);
+      const P = WATER_PAIRS[waterPair], O = [0, 0, 0];
+      const atoms = [[O, waterNO], [P.h1, WATER_NH], [P.h2, WATER_NH]];
+      const cores = atoms.map(a => [a[0], WATER_CORE]);
+      waterCoresGroup.add(waterAtom(O, waterNO, 0xe5484d, 0xffb3b6));
+      waterCoresGroup.add(waterAtom(P.h1, WATER_NH, 0xf1f5f9, 0xffffff));
+      waterCoresGroup.add(waterAtom(P.h2, WATER_NH, 0xf1f5f9, 0xffffff));
+
+      // Sitios libres: dentro de la caja del atomo, fuera de su nucleo d <= 3
+      const pts = [];
+      let freeO = 0;
+      atoms.forEach(([c, N], k) => {
+        for (let dx = -N; dx <= N; dx++) for (let dy = -N; dy <= N; dy++) for (let dz = -N; dz <= N; dz++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz)) <= WATER_CORE) continue;
+          if (k === 0) freeO++;
+          if (k > 0) {
+            // el H se clona identico: densidad 1s de la pestaña 1 (solo sitios con densidad > corte)
+            const rho = Math.exp(-2.0 * Math.sqrt(dx * dx + dy * dy + dz * dz) / WATER_R0);
+            if (rho < WATER_CUT) continue;
+          }
+          pts.push(c[0] + dx, c[1] + dy, c[2] + dz);
+        }
+      });
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+      waterSitesGroup.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x35ddff, size: 0.07, transparent: true, opacity: 0.5 })));
+
+      // Enlaces: palabra de pasos de eje por sitios libres (fuera de todo nucleo)
+      [P.h1, P.h2].forEach(h => {
+        waterStepWord(h).forEach(p => {
+          if (cores.some(([c, n]) => waterInBox(p, c, n))) return;
+          const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshBasicMaterial({ color: 0xff6b35 }));
+          m.position.set(...p);
+          waterStepsGroup.add(m);
+        });
+      });
+
+      const ang = waterAngle(P.h1, P.h2).toFixed(2) + '°';
+      document.getElementById('w-angle-badge').textContent = 'H–O–H ' + ang;
+      document.getElementById('w-no-badge').textContent = 'N = ' + waterNO;
+      const side = 2 * waterNO + 1;
+      document.getElementById('w-sites-txt').textContent =
+        'Cubo (±' + waterNO + ')³ del O: ' + (side * side * side) + ' celdas, ' + (side * side * side - 343) +
+        ' sitios libres (se quitan las 343 de d ≤ 3). El O tiene 8 electrones.';
+      document.getElementById('w-hfit-txt').textContent =
+        'H: con la misma densidad 1s de la pestaña 1 (corte ' + WATER_CUT + ') el último sitio libre está en ' +
+        WATER_NH + ': cabe en (' + WATER_NH + ',' + WATER_NH + ',' + WATER_NH + ').';
+      updateWaterLayers();
+    }
+
+    function updateWaterLayers() {
+      waterCoresGroup.visible = document.getElementById('w-t-cores').checked;
+      waterSitesGroup.visible = document.getElementById('w-t-sites').checked;
+      waterStepsGroup.visible = document.getElementById('w-t-steps').checked;
+    }
+
+    function setWaterNO(v) { waterNO = Math.max(4, Math.min(14, parseInt(v, 10) || 10)); buildWater(); }
+    function setWaterPair(i) { waterPair = i; buildWater(); }
+
+    function setWaterMode(on) {
+      waterActive = on;
+      const hydro = [axesGroup, marksGroup, planesGroup, cornerCubesGroup, conesGroup, orbitalsGroup, nucleusGroup, hoppingGroup];
+      if (on) {
+        hydro.forEach(g => { g.visible = false; });
+        waterGroup.visible = true;
+        buildWater();
+        camTargetPos = new THREE.Vector3(34, 26, 46);
+        camTargetLook = new THREE.Vector3(0, -5, 0);
+        camLerpFactor = 0.08;
+      } else {
+        waterGroup.visible = false;
+        updateLayers();
+      }
+    }
+
     function switchTab(idx) {
       document.querySelectorAll('.tab-btn').forEach((b, i) => {
         b.classList.toggle('active', i + 1 === idx);
@@ -2933,6 +3139,8 @@
       document.querySelectorAll('.tab-pane').forEach((p, i) => {
         p.classList.toggle('active', i + 1 === idx);
       });
+      const wantWater = idx === 5;
+      if (wantWater !== waterActive) setWaterMode(wantWater);
     }
 
     function toggleSidebar(open) {
