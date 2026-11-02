@@ -50,6 +50,15 @@ lemma radius_pos {a : ℝ} (ha : 0 < a) (p : ℤ × ℤ × ℤ) : 0 < radius a p
   rw [this] at h
   nlinarith [sq_pos_of_pos ha]
 
+/-- The cube of side `2 * M` cells, centred on the origin corner: finite, never infinite. -/
+def cubo (M : ℕ) : Finset (ℤ × ℤ × ℤ) :=
+  Finset.Ico (-(M : ℤ)) M ×ˢ Finset.Ico (-(M : ℤ)) M ×ˢ Finset.Ico (-(M : ℤ)) M
+
+lemma card_cubo (M : ℕ) : (cubo M).card = (2 * M) ^ 3 := by
+  have h : (M : ℤ) - -(M : ℤ) = ((2 * M : ℕ) : ℤ) := by push_cast; ring
+  simp only [cubo, Finset.card_product, Int.card_Ico, h, Int.toNat_natCast]
+  ring
+
 /-- Kinetic form: sum over the axis hops of the squared differences. -/
 noncomputable def kinetic (a : ℝ) (S : Finset (ℤ × ℤ × ℤ)) (ψ : ℤ × ℤ × ℤ → ℝ) : ℝ :=
   (1 / (2 * a ^ 2)) * ∑ p ∈ S, ∑ i : Fin 3, (ψ (p + axis i) - ψ p) ^ 2
@@ -88,5 +97,10 @@ lemma coulomb_ge {k a : ℝ} (hk : 0 ≤ k) (ha : 0 < a) (S : Finset (ℤ × ℤ
   have h2 : ψ p ^ 2 / (√3 * a / 2) = (2 / (√3 * a)) * ψ p ^ 2 := by
     field_simp
   nlinarith [mul_le_mul_of_nonneg_left h1 hk]
+
+/-- In the cube of `N = 2 M` cells per side, the Coulomb term is a finite sum bounded below. -/
+lemma coulomb_cubo_ge {k a : ℝ} (hk : 0 ≤ k) (ha : 0 < a) (M : ℕ) (ψ : ℤ × ℤ × ℤ → ℝ) :
+    -(k * (2 / (√3 * a))) * ∑ p ∈ cubo M, ψ p ^ 2 ≤ coulomb k a (cubo M) ψ :=
+  coulomb_ge hk ha (cubo M) ψ
 
 end NRS3Hidrogeno
