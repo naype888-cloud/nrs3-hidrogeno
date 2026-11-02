@@ -6,3 +6,5 @@ import NRS3Hidrogeno.Variacional
 import NRS3Hidrogeno.Prueba
 import NRS3Hidrogeno.Limite
 import NRS3Hidrogeno.Hardy
+import NRS3Hidrogeno.Hilbert.Variacional
+import NRS3Hidrogeno.Hilbert.Salto
