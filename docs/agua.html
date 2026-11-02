@@ -708,15 +708,15 @@
       <div class="control-card">
         <div class="control-title">
           <span>La molécula</span>
-          <span class="badge badge-gold" id="badge-angle">106.26°</span>
+          <span class="badge badge-gold" id="badge-angle">104.07°</span>
         </div>
         <p class="control-desc">
           Cada átomo parte de su propio centro: el cubo <code>d ≤ 3</code> (hasta <code>(3,3,3)</code>) es su
           parte saturante, el qubit de Bloch, y <b>no tiene sitios disponibles</b>. Los sitios empiezan en 4.
-          Aquí: O en el origen y H en <code id="h-txt">(±8, −6, 0)</code>. El enlace son pasos de eje por los
-          sitios libres entre los núcleos. Ángulo H–O–H: <code id="angle-txt">106.26°</code>
-          (experimental del H₂O: 104.5°).
-        </p>
+          Cada elemento tiene su cubo: el H cabe en <code>(5,5,5)</code>; el O se estima en <code>(10,10,10)</code>,
+          mucho más grande. Aquí: O en el origen y H en <code id="h-txt">(±15, −11, 4)</code>, con las cajas sin traslape.
+          Los enlaces son pasos de eje por los sitios libres entre los núcleos. Ángulo H–O–H: <code id="angle-txt">104.07°</code>
+          (experimental del H₂O: 104.5°).</p>
       </div>
 
       <div class="control-card">
@@ -747,9 +747,9 @@
         <div class="control-title"><span>Ángulo H–O–H en la red</span></div>
         <p class="control-desc">Con vectores enteros el ángulo es discreto. Elige un par de sitios para los H:</p>
         <div class="btn-group">
-          <button class="action-btn" onclick="setPair(0)">(±8, −6, 0)</button>
-          <button class="action-btn secondary" onclick="setPair(1)">(±8, −6, −1)</button>
-          <button class="action-btn secondary" onclick="setPair(2)">(±8, −6, −2)</button>
+          <button class="action-btn" onclick="setPair(0)">(±15, −11, 4)</button>
+          <button class="action-btn secondary" onclick="setPair(1)">(±15, −11, 0)</button>
+          <button class="action-btn secondary" onclick="setPair(2)">(±15, −12, 0)</button>
         </div>
       </div>
     </div>
@@ -1820,10 +1820,11 @@
        Cada atomo parte de su centro: el cubo d <= 3 (|x|,|y|,|z| <= 3) es su parte saturante
        (qubit de Bloch) y no tiene sitios; los sitios libres empiezan en 4. */
     const CORE = 3;
+    const N_O = 10, N_H = 5; // cubo de cada elemento: el H cabe en 5,5,5; el O se estima en 10,10,10
     const PAIRS = [
-      { h1: [-8, -6, 0], h2: [8, -6, 0] },
-      { h1: [-8, -6, -1], h2: [8, -6, -1] },
-      { h1: [-8, -6, -2], h2: [8, -6, -2] }
+      { h1: [-15, -11, 4], h2: [15, -11, 4] },
+      { h1: [-15, -11, 0], h2: [15, -11, 0] },
+      { h1: [-15, -12, 0], h2: [15, -12, 0] }
     ];
     let pair = 0;
 
@@ -1833,10 +1834,10 @@
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x030712);
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 500);
-    camera.position.set(14, 12, 22);
+    camera.position.set(30, 24, 44);
     const controls = new THREE.OrbitControls(camera, canvas);
     controls.enableDamping = true;
-    controls.target.set(0, -3, 0);
+    controls.target.set(0, -5, 0);
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const sun = new THREE.DirectionalLight(0xffffff, 0.9);
     sun.position.set(6, 14, 10);
@@ -1866,6 +1867,19 @@
       g.add(cube, sph, dot);
       g.position.set(...center);
       return g;
+    }
+
+    // Caja del elemento: cubo (N, N, N) alrededor de su centro
+    function atomBox(center, N, color) {
+      const side = 2 * N + 1;
+      const g = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(side, side, side)),
+        new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.55 }));
+      g.position.set(...center);
+      return g;
+    }
+
+    function inBox(p, c, N) {
+      return Math.abs(p[0] - c[0]) <= N && Math.abs(p[1] - c[1]) <= N && Math.abs(p[2] - c[2]) <= N;
     }
 
     function inCore(p, c) {
@@ -1901,21 +1915,25 @@
       clear(gO); clear(gH); clear(gS); clear(gG);
       const P = PAIRS[pair], O = [0, 0, 0], cores = [O, P.h1, P.h2];
       gO.add(core(O, 0xe5484d, 0xffb3b6));
+      gO.add(atomBox(O, N_O, 0xff7b7f));
       [P.h1, P.h2].forEach(h => {
         gH.add(core(h, 0xf1f5f9, 0xffffff));
+        gH.add(atomBox(h, N_H, 0xe2e8f0));
         stepWord(h).forEach(p => {
           if (!cores.some(c => inCore(p, c))) gS.add(block(p, 0.45, 0x35ddff, 0xbff4ff));
         });
       });
       const pts = [];
-      for (let x = -13; x <= 13; x++) for (let y = -11; y <= 5; y++) for (let z = -6; z <= 6; z++) {
-        if (cores.some(c => inCore([x, y, z], c))) continue;
-        if (Math.abs(x) + Math.abs(z) > 14) continue;
+      const boxes = [[O, N_O], [P.h1, N_H], [P.h2, N_H]];
+      for (let x = -21; x <= 21; x++) for (let y = -18; y <= 11; y++) for (let z = -11; z <= 11; z++) {
+        const p = [x, y, z];
+        if (!boxes.some(([c, N]) => inBox(p, c, N))) continue;
+        if (cores.some(c => inCore(p, c))) continue;
         pts.push(x, y, z);
       }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-      gG.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x64748b, size: 0.05, transparent: true, opacity: 0.5 })));
+      gG.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x64748b, size: 0.04, transparent: true, opacity: 0.45 })));
       const a = angleDeg(P.h1, P.h2).toFixed(2) + '°';
       document.getElementById('badge-angle').textContent = a;
       document.getElementById('angle-txt').textContent = a;
