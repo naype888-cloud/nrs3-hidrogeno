@@ -63,9 +63,25 @@ el estado `ρ = ½(1 + xσₓ + yσ_y + zσ_z)`:
 | Se satura exactamente en la esfera, los estados puros | `defect_eq_zero_iff` |
 | `ρ ≥ 0` si y solo si `‖v‖ ≤ 1` | `posSemidef_rho_iff` |
 
+### Hasta dónde cierra el álgebra: `d = 2, 3`
+
+El hop de la cadena es `T = S + Sᵀ` (`S` el desplazamiento) y `P` la posición `0, 1, …, d − 1`.
+
+| Enunciado | Lean |
+|---|---|
+| `T` es la adyacencia del grafo camino de `d` posiciones | `Tp_eq_adj` |
+| `[T, P] = Sᵀ − S` y `[P, [T, P]] = −T`, para todo `d` | `br_Tp_Pp`, `br_Pp_br_Tp_Pp` |
+| `[T, [T, P]] = diag(−2, 0, …, 0, 2)`, un operador de frontera | `dbl_eq` |
+| Es combinación de `P` y `1` si y solo si `d ≤ 3`: `{T, P, [T, P], 1}` cierra en `d = 2, 3` y no desde `d = 4` | `closes_iff` |
+
+La frontera coincide con la de `saturada_TdPd_iff` (`D22`): el teorema base satura solo en
+`d = 2, 3`. Este repo no prueba la relación entre ambos enunciados.
+
 ## Lo que no está probado
 
 - Que `E∞` sea el nivel de Rydberg.
+- La identificación de `(T_d, P_d)`, para `d = 2, 3`, con las matrices de espín `1/2` y `1`, y la
+  relación formal entre el cierre del álgebra y la saturación de Robertson.
 - Que `1/4` sea la mejor constante de `hardy_entero`: está probada como cota, no como óptima.
 - El amarre en Lean de `evaluacionTdPd 2` (corpus, `D22`) con `BolaDeBloch.lean`. Para todo
   `d ≥ 2` el corpus ya prueba la saturación y el defecto (`saturada_TdPd_iff`,
