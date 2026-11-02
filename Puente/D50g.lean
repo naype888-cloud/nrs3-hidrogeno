@@ -2,6 +2,7 @@ import NavaRobertsonCertificados.D50k_WordDefectBand
 import NavaRobertsonCertificados.D50_ProperTimeSurplus
 import Mathlib.Combinatorics.SimpleGraph.AdjMatrix
 import NavaRobertsonIndependent.Mathematics.D8_Szego
+import NavaRobertsonIndependent.Mathematics.D9_Monotonicity
 import NavaRobertsonIndependent.Mathematics.D21_ElementalNRSInequality
 
 /-!
@@ -228,53 +229,47 @@ theorem cube_hopping_and_cost {d : ℕ} (hd : 2 ≤ d) {Φ : H3D d d d} (hΦ : �
   rw [adjacency_cube hd hd hd, smul_add, smul_add]
 
 
-/-! ## The first defect, exactly, and the minimum delay it gives
+/-! ## The first defect and the time it gives
 
-At `d = 4` the Gram defect is a number of `ℚ(√5)`: `cos (π/5) = (1 + √5)/4` gives
-`C_N(4)² = (99 − 42 √5) / 5`, so `defectGram 4 = (94 − 42 √5) / 45 ≈ 0.001892`. Times the duration
-of a step at the floor `ℓ_P`, `ℓ_P / c`, it is the minimum delay of a step. -/
+The defect is the excess of the ratio over `1`: `δ(d) = C_N(d) − 1`, the saturation being `δ = 0`
+(`d = 2, 3`). It does not approach `0` as `d` grows: it increases from `δ(4) ≈ 0.0084786`
+(`geometricGap_four_le`) to the limit `δ∞ ≈ 0.1357` that no `d` reaches
+(`geometricGap_lt_deltaInf`). A step lasts `ℓ_P / c` at the floor, so the delay of the defect is
+`δ ℓ_P / c`: the first time is `δ(4) ℓ_P / c`, and every `d ≥ 4` lies between it and `δ∞ ℓ_P / c`. -/
 
 section DefectFour
 
 open Gnomon Real
 
-theorem sqrt5_sq : (√5 : ℝ) ^ 2 = 5 := Real.sq_sqrt (by norm_num)
-
-/-- `cos² (π/5) = (3 + √5) / 8`. -/
-theorem cos_sq_pi_div_five : Real.cos (π / 5) ^ 2 = (3 + √5) / 8 := by
-  rw [Real.cos_pi_div_five]
-  linear_combination (1 / 16 : ℝ) * sqrt5_sq
-
-/-- `C_N(4)² = (99 − 42 √5) / 5`. -/
-theorem coherenceConstantSq_four : CoherenceConstantSq 4 = (99 - 42 * √5) / 5 := by
-  unfold CoherenceConstantSq theta Nreal
-  have h5 : π / (((4 : ℕ) : ℝ) + 1) = π / 5 := by norm_num
-  rw [h5, Real.sin_sq, cos_sq_pi_div_five]
-  have hs := sqrt5_sq
-  have hpos : (0 : ℝ) < 3 + √5 := by positivity
-  field_simp
-  ring_nf
-  linear_combination 1260 * hs
-
-/-- **The Gram defect of `d = 4`, exactly**: `(94 − 42 √5) / 45`. -/
-theorem defectGram_four : defectGram 4 = (94 - 42 * √5) / 45 := by
-  rw [gramStep_gram (by norm_num), coherenceConstantSq_four]
-  norm_num
-  ring
-
-/-- `0.001892 < defectGram 4 < 0.001893`. -/
-theorem defectGram_four_bounds : (0.001892 : ℝ) < defectGram 4 ∧ defectGram 4 < 0.001893 := by
-  rw [defectGram_four]
+/-- `0.008478 < δ(4) < 0.008479`, `δ(4) = C_N(4) − 1`. -/
+theorem gap_four_bounds : (0.008478 : ℝ) < geometricGap 4 ∧ geometricGap 4 < 0.008479 := by
+  unfold geometricGap CoherenceConstant
+  rw [CoherenceConstantSq_four_eq]
   have h1 : (2.2360679 : ℝ) < √5 := (Real.lt_sqrt (by norm_num)).mpr (by norm_num)
   have h2 : √5 < (2.236068 : ℝ) := (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
-  constructor <;> linarith
+  constructor
+  · have h : (1.008478 : ℝ) ^ 2 < (99 - 42 * √5) / 5 := by norm_num; linarith
+    have := (Real.lt_sqrt (by norm_num)).mpr h
+    linarith
+  · have h : (99 - 42 * √5) / 5 < (1.008479 : ℝ) ^ 2 := by norm_num; linarith
+    have := (Real.sqrt_lt' (by norm_num)).mpr h
+    linarith
 
-/-- **The minimum delay of a step at `d = 4`**, with `ℓ_P = 1.616255 × 10⁻³⁵ m` and
-`c = 299792458 m/s`: `defectGram 4 · ℓ_P / c` lies in `(1.02, 1.021) × 10⁻⁴⁶ s`. -/
-theorem delay_four_bounds :
-    (1.02e-46 : ℝ) < defectGram 4 * (1.616255e-35 / 299792458) ∧
-      defectGram 4 * (1.616255e-35 / 299792458) < 1.021e-46 := by
-  obtain ⟨h1, h2⟩ := defectGram_four_bounds
+/-- `δ∞ < 0.13573`, `δ∞ = √(π²/3 − 2) − 1`. -/
+theorem deltaInf_lt_numeric : deltaInf < 0.13573 := by
+  unfold deltaInf CoherenceConstantInf
+  have hpi : π < 3.141593 := Real.pi_lt_d6
+  have hpi0 : 0 < π := Real.pi_pos
+  have h : π ^ 2 / 3 - 2 < (1.13573 : ℝ) ^ 2 := by nlinarith
+  have := (Real.sqrt_lt' (by norm_num)).mpr h
+  linarith
+
+/-- **The first time**: with `ℓ_P = 1.616255 × 10⁻³⁵ m` and `c = 299792458 m/s`, `δ(4) · ℓ_P / c`
+lies in `(4.57, 4.572) × 10⁻⁴⁶ s`. -/
+theorem delay_gap_four_bounds :
+    (4.57e-46 : ℝ) < geometricGap 4 * (1.616255e-35 / 299792458) ∧
+      geometricGap 4 * (1.616255e-35 / 299792458) < 4.572e-46 := by
+  obtain ⟨h1, h2⟩ := gap_four_bounds
   have ht : (0 : ℝ) < 1.616255e-35 / 299792458 := by norm_num
   have a1 := mul_lt_mul_of_pos_right h1 ht
   have a2 := mul_lt_mul_of_pos_right h2 ht
@@ -283,6 +278,23 @@ theorem delay_four_bounds :
     norm_num
   · refine lt_trans a2 ?_
     norm_num
+
+/-- **The delay of a step never approaches `0` and never reaches the limit**: for every `d ≥ 4`
+and every positive step time `t`, `0 < δ(4) t ≤ δ(d) t < δ∞ t`. -/
+theorem delay_gap_range {t : ℝ} (ht : 0 < t) (d : ℕ) (hd : 4 ≤ d) :
+    0 < geometricGap 4 * t ∧ geometricGap 4 * t ≤ geometricGap d * t ∧
+      geometricGap d * t < deltaInf * t :=
+  ⟨mul_pos (geometricGap_pos_of_four_le 4 le_rfl) ht,
+    mul_le_mul_of_nonneg_right (geometricGap_four_le d hd) ht.le,
+    mul_lt_mul_of_pos_right (geometricGap_lt_deltaInf d hd) ht⟩
+
+/-- The limit, in seconds: `δ∞ · ℓ_P / c < 7.32 × 10⁻⁴⁵ s`. -/
+theorem delay_inf_numeric : deltaInf * (1.616255e-35 / 299792458) < 7.32e-45 := by
+  have h := deltaInf_lt_numeric
+  have ht : (0 : ℝ) < 1.616255e-35 / 299792458 := by norm_num
+  have a := mul_lt_mul_of_pos_right h ht
+  refine lt_trans a ?_
+  norm_num
 
 end DefectFour
 
