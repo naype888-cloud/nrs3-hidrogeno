@@ -227,4 +227,63 @@ theorem cube_hopping_and_cost {d : ℕ} (hd : 2 ≤ d) {Φ : H3D d d d} (hΦ : �
   refine ⟨?_, fun w => word_cost hd hΦ tx ty tz w, fun h4 w hw => word_cost_pos h4 hΦ tx ty tz hw⟩
   rw [adjacency_cube hd hd hd, smul_add, smul_add]
 
+
+/-! ## The first defect, exactly, and the minimum delay it gives
+
+At `d = 4` the Gram defect is a number of `ℚ(√5)`: `cos (π/5) = (1 + √5)/4` gives
+`C_N(4)² = (99 − 42 √5) / 5`, so `defectGram 4 = (94 − 42 √5) / 45 ≈ 0.001892`. Times the duration
+of a step at the floor `ℓ_P`, `ℓ_P / c`, it is the minimum delay of a step. -/
+
+section DefectFour
+
+open Gnomon Real
+
+theorem sqrt5_sq : (√5 : ℝ) ^ 2 = 5 := Real.sq_sqrt (by norm_num)
+
+/-- `cos² (π/5) = (3 + √5) / 8`. -/
+theorem cos_sq_pi_div_five : Real.cos (π / 5) ^ 2 = (3 + √5) / 8 := by
+  rw [Real.cos_pi_div_five]
+  linear_combination (1 / 16 : ℝ) * sqrt5_sq
+
+/-- `C_N(4)² = (99 − 42 √5) / 5`. -/
+theorem coherenceConstantSq_four : CoherenceConstantSq 4 = (99 - 42 * √5) / 5 := by
+  unfold CoherenceConstantSq theta Nreal
+  have h5 : π / (((4 : ℕ) : ℝ) + 1) = π / 5 := by norm_num
+  rw [h5, Real.sin_sq, cos_sq_pi_div_five]
+  have hs := sqrt5_sq
+  have hpos : (0 : ℝ) < 3 + √5 := by positivity
+  field_simp
+  ring_nf
+  linear_combination 1260 * hs
+
+/-- **The Gram defect of `d = 4`, exactly**: `(94 − 42 √5) / 45`. -/
+theorem defectGram_four : defectGram 4 = (94 - 42 * √5) / 45 := by
+  rw [gramStep_gram (by norm_num), coherenceConstantSq_four]
+  norm_num
+  ring
+
+/-- `0.001892 < defectGram 4 < 0.001893`. -/
+theorem defectGram_four_bounds : (0.001892 : ℝ) < defectGram 4 ∧ defectGram 4 < 0.001893 := by
+  rw [defectGram_four]
+  have h1 : (2.2360679 : ℝ) < √5 := (Real.lt_sqrt (by norm_num)).mpr (by norm_num)
+  have h2 : √5 < (2.236068 : ℝ) := (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
+  constructor <;> linarith
+
+/-- **The minimum delay of a step at `d = 4`**, with `ℓ_P = 1.616255 × 10⁻³⁵ m` and
+`c = 299792458 m/s`: `defectGram 4 · ℓ_P / c` lies in `(1.02, 1.021) × 10⁻⁴⁶ s`. -/
+theorem delay_four_bounds :
+    (1.02e-46 : ℝ) < defectGram 4 * (1.616255e-35 / 299792458) ∧
+      defectGram 4 * (1.616255e-35 / 299792458) < 1.021e-46 := by
+  obtain ⟨h1, h2⟩ := defectGram_four_bounds
+  have ht : (0 : ℝ) < 1.616255e-35 / 299792458 := by norm_num
+  have a1 := mul_lt_mul_of_pos_right h1 ht
+  have a2 := mul_lt_mul_of_pos_right h2 ht
+  constructor
+  · refine lt_trans ?_ a1
+    norm_num
+  · refine lt_trans a2 ?_
+    norm_num
+
+end DefectFour
+
 end Puente

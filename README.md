@@ -69,6 +69,17 @@ eje sobre los sitios enteros, la bola de Bloch del primer paso y los teoremas de
 El límite de velocidad de un estado de Dirac con masa `m`, `|⟨V⟩| ≤ √(1 + m²) − |m|`, está en
 [`nrs3-hopf`](https://github.com/naype888-cloud/nrs3-hopf) (`DiracSpeed.abs_velocity_le`).
 
+### El primer defecto y el retraso mínimo (`d = 4`)
+
+| Enunciado | Lean (`Puente/D50g.lean`) |
+|---|---|
+| `C_N(4)² = (99 − 42√5)/5`, de `cos(π/5) = (1 + √5)/4` | `coherenceConstantSq_four` |
+| El defecto de Gram de `d = 4`, exacto: `(94 − 42√5)/45 ≈ 0.001892` | `defectGram_four`, `defectGram_four_bounds` |
+| Con `ℓ_P = 1.616255 × 10⁻³⁵ m` y `c = 299792458 m/s`, el retraso mínimo de un paso, `defectGram 4 · ℓ_P/c`, está en `(1.02, 1.021) × 10⁻⁴⁶ s` | `delay_four_bounds` |
+| El retraso de cualquier palabra no vacía desde `d = 4` es positivo y al menos `defectGram d · ℓ_P/c` por letra | `word_delay_pos` |
+
+En `d = 2, 3` el defecto es 0 y el retraso es 0.
+
 ### El primer paso del álgebra: la bola de Bloch (`d = 2`)
 
 El par `(T, P) = (σₓ, σ_z)` es la fila 21 de la tabla de pares del teorema base (`(P₂, T₂)`). Para
