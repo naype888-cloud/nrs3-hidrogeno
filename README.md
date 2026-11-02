@@ -9,7 +9,7 @@
   </p>
   <p>
     <strong><a href="https://naype888-cloud.github.io/nrs3-hidrogeno/">▶ naype888-cloud.github.io/nrs3-hidrogeno</a></strong> · 
-    <a href="https://naype888-cloud.github.io/nrs3-hidrogeno/Visualizador-Hidrogeno-NRS3-Bloch-Cubo.html">Visualizador 3D interactivo</a>
+    <a href="https://naype888-cloud.github.io/nrs3-hidrogeno/visualizador.html">Visualizador 3D interactivo</a>
   </p>
 </div>
 
