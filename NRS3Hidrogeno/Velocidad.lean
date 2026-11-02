@@ -6,7 +6,9 @@ import NRS3Hidrogeno.Cubo
 
 The velocity along an axis is `v_i = i [H, x_i]`. On the hop `-t (S_i + S_i†)` it acts as
 `(v_i ψ)(p) = i t a (ψ(p - e_i) - ψ(p + e_i))`. Whatever the state and the size of the cube,
-`‖v_i ψ‖ ≤ 2 t a ‖ψ‖`: with `t = 1/(2 a²)` (ħ = m = 1) this is `1 / a`, the speed of the cube.
+`‖v_i ψ‖ ≤ 2 t a ‖ψ‖`: with `t = 1/(2 a²)` (ħ = m = 1) this is `1 / a`. This is an upper bound only.
+It is saturated exactly for `d = 2, 3` (`C_N = 1`); from `d = 4` the excess `δ(d) = C_N(d) - 1 > 0`
+is the delay of the max current on the diagonal words (corpus `D44`, `D8`), which this file does not prove.
 -/
 
 namespace NRS3Hidrogeno
@@ -74,7 +76,8 @@ theorem vel_bound (S : Finset (ℤ × ℤ × ℤ)) (ψ : ℤ × ℤ × ℤ → �
           sum_shift_sub S ψ hS i, sum_shift_add S ψ hS i]
     _ = (2 * t * a) ^ 2 * ∑ q ∈ S, ‖ψ q‖ ^ 2 := by ring
 
-/-- With `t = 1 / (2 a²)` (ħ = m = 1) the cap is `1 / a`: the speed of the cube. -/
+/-- With `t = 1 / (2 a²)` (ħ = m = 1) the bound is `1 / a`. It is an upper bound, not the attained speed
+for `d ≥ 4`. -/
 theorem vel_bound_cube (S : Finset (ℤ × ℤ × ℤ)) (ψ : ℤ × ℤ × ℤ → ℂ) (hS : ∀ p ∉ S, ψ p = 0)
     (i : Fin 3) {a : ℝ} (ha : 0 < a) :
     ∑ p ∈ reach S i, ‖vel i (1 / (2 * a ^ 2)) a ψ p‖ ^ 2 ≤ (1 / a) ^ 2 * ∑ q ∈ S, ‖ψ q‖ ^ 2 := by
