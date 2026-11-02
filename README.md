@@ -9,6 +9,9 @@ Los `d` son la discretización de cada par posición–momento `(P_d, T_d)` de l
 teorema base satura solo en `d = 2, 3` y es estricto desde `d = 4` ([`nava-robertson-schrodinger`](https://github.com/naype888-cloud/nava-robertson-schrodinger),
 `D22`, `D37`, `D39`); este repo lo usa y no lo repite.
 
+**[▶ El sitio](https://naype888-cloud.github.io/nrs3-hidrogeno/)**: el electrón saltando de eje en
+eje sobre los sitios enteros, la bola de Bloch del primer paso y los teoremas de Lean.
+
 ## Resultados
 
 ### El modelo
