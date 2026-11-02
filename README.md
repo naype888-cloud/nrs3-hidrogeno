@@ -111,6 +111,22 @@ Con `Jₓ = T/√2`, `J_y = Y/√2`, `J_z = Z`. El álgebra de Pauli de `σ` est
 [`nrs3-pauli-dirac`](https://github.com/naype888-cloud/nrs3-pauli-dirac) (`sigma_anticomm`,
 `sigma_mul`, `no_four_anticommuting`).
 
+### La esfera de `d = 3` es la esfera de Bloch
+
+Un qubit `(a, b)` de norma 1 tiene el cuadrado simétrico `ψ = (a², √2·ab, b²)`, un estado de las tres
+posiciones. Para el salto `T` y la posición `Z = P − 1` de arriba:
+
+| Enunciado | Lean |
+|---|---|
+| Los vectores centrados `(T − ⟨T⟩)ψ` y `(Z − ⟨Z⟩)ψ` son múltiplos de un mismo vector: `(a² − b²)·χ` y `√2·ab·χ` | `cen_T`, `cen_Z` |
+| El defecto de Gram (la brecha de Cauchy–Schwarz de los dos vectores centrados) es `0`: **estos estados saturan en `d = 3`**, como los estados puros en `d = 2` | `coherent_saturates` |
+| `⟨T⟩ = √2 · 2 Re(ā b)` y `⟨Z⟩ = \|b\|² − \|a\|²`: son las coordenadas del vector de Bloch del qubit `(a, b)` | `mean_T_re`, `mean_Z_re` |
+| Ese vector está en la esfera unitaria | `sphere` |
+
+No son todos los estados que saturan en `d = 3`: la clasificación completa es la de `D23`
+(`gramDefectAt_eq_zero_iff`, los vectores centrados proporcionales), y por ejemplo un estado con
+`Var Z = 0` satura sin ser coherente.
+
 ### El cubo abierto, del mismo cierre (corpus)
 
 Las mismas relaciones, `[P, [T, P]] = −h² T` para todo `d` y el cierre de `D49i` solo en
