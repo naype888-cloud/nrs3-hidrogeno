@@ -18,6 +18,11 @@ paso de eje, el `T_d` de cada eje (`D37`, `D39`); la celda del núcleo no lleva 
 estado; y ninguna cota depende de la celda `a` ni del tamaño de la caja. Lean 4 con Mathlib, sin
 `sorry`, solo los axiomas `propext`, `Classical.choice` y `Quot.sound`.
 
+Este repo es el **cubo abierto** (ejes con extremos, `D0`–`D49t` del teorema base). Las demás
+topologías del mismo teorema están en sus propios repos: el toro `T³`, con cada eje cerrado, en
+[`nrs3-tritoro`](https://github.com/naype888-cloud/nrs3-tritoro), y el eje cerrado y la fibra de Hopf en
+[`nrs3-hopf`](https://github.com/naype888-cloud/nrs3-hopf). El hidrógeno de aquí no está hecho sobre ellas.
+
 Los `d` son la discretización de cada par posición–momento `(P_d, T_d)` de los tres ejes. El
 teorema base satura solo en `d = 2, 3` y es estricto desde `d = 4` ([`nava-robertson-schrodinger`](https://github.com/naype888-cloud/nava-robertson-schrodinger),
 `D22`, `D37`, `D39`); este repo lo usa y no lo repite.
