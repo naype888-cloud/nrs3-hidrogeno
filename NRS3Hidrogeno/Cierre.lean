@@ -14,7 +14,10 @@ reading is spin `1/2` for `d = 2`, the `σₓ, σ_z` of `BolaDeBloch`, and spin 
 identification is not proved here. From `d = 4` the commutators of `T` and `P` do not close, and
 that is where the Robertson–Schrödinger inequality is strict (`D22`, `D39`).
 
-The hop of the corpus is `A_d = ρ_d T_d` (`D3`); the scale `ρ_d` does not change what closes.
+The corpus proves this closure for its own normalised `T_d`, `P_d`: `LieClosure.closure_iff` and
+`LieClosure.commutator_P_C` in `D49i`. What is here is an independent proof with Mathlib alone,
+on the unnormalised hop `T = A_d` (`A_d = ρ_d T_d`, `D3`) and the integer position; the scales do
+not change what closes.
 -/
 
 namespace NRS3Hidrogeno

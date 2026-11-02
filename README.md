@@ -50,6 +50,9 @@ teorema base satura solo en `d = 2, 3` y es estricto desde `d = 4` ([`nava-rober
 | A escala de Compton, el sitio más cercano tiene energía de Coulomb `α m c²` | `coulomb_nearest_at_compton` |
 | El radio de Bohr mide `1/α` pasos | `bohr_in_steps` |
 
+El límite de velocidad de un estado de Dirac con masa `m`, `|⟨V⟩| ≤ √(1 + m²) − |m|`, está en
+[`nrs3-hopf`](https://github.com/naype888-cloud/nrs3-hopf) (`DiracSpeed.abs_velocity_le`).
+
 ### El primer paso del álgebra: la bola de Bloch (`d = 2`)
 
 El par `(T, P) = (σₓ, σ_z)` es la fila 21 de la tabla de pares del teorema base (`(P₂, T₂)`). Para
@@ -74,14 +77,29 @@ El hop de la cadena es `T = S + Sᵀ` (`S` el desplazamiento) y `P` la posición
 | `[T, [T, P]] = diag(−2, 0, …, 0, 2)`, un operador de frontera | `dbl_eq` |
 | Es combinación de `P` y `1` si y solo si `d ≤ 3`: `{T, P, [T, P], 1}` cierra en `d = 2, 3` y no desde `d = 4` | `closes_iff` |
 
-La frontera coincide con la de `saturada_TdPd_iff` (`D22`): el teorema base satura solo en
-`d = 2, 3`. Este repo no prueba la relación entre ambos enunciados.
+El corpus ya prueba este cierre para sus `T_d`, `P_d` normalizados (`D49i`: `closure_iff`,
+`commutator_P_C`); aquí hay una prueba independiente, solo con Mathlib, sobre el hop sin
+normalizar. La frontera coincide con la de `saturada_TdPd_iff` (`D22`): el teorema base satura solo
+en `d = 2, 3`.
+
+### Es el espín: `d = 2, 3`
+
+| Enunciado | Lean |
+|---|---|
+| `d = 2`: el hop es `σₓ` y la posición es `(1 − σ_z)/2` | `Tp_two`, `Pp_two` |
+| `d = 3`: el hop, `Y = i[T, P]` y `Z = P − 1` son matrices explícitas | `Tp_three`, `Pp_three`, `Y3_eq` |
+| …y cumplen las relaciones del momento angular de espín 1: `[T,Y] = 2iZ`, `[Y,Z] = iT`, `[Z,T] = iY` | `comm_T3_Y3`, `comm_Y3_Z3`, `comm_Z3_T3` |
+| …con el Casimir `T² + Y² + 2Z² = 4`, es decir `J² = j(j+1) = 2` con `j = 1` | `casimir_three` |
+
+Con `Jₓ = T/√2`, `J_y = Y/√2`, `J_z = Z`. El álgebra de Pauli de `σ` está probada en
+[`nrs3-pauli-dirac`](https://github.com/naype888-cloud/nrs3-pauli-dirac) (`sigma_anticomm`,
+`sigma_mul`, `no_four_anticommuting`).
 
 ## Lo que no está probado
 
 - Que `E∞` sea el nivel de Rydberg.
-- La identificación de `(T_d, P_d)`, para `d = 2, 3`, con las matrices de espín `1/2` y `1`, y la
-  relación formal entre el cierre del álgebra y la saturación de Robertson.
+- La relación formal entre el cierre del álgebra y la saturación de Robertson: el corpus los
+  presenta como la misma ruptura en `d = 4` (`D49i`); este repo no la formaliza.
 - Que `1/4` sea la mejor constante de `hardy_entero`: está probada como cota, no como óptima.
 - El amarre en Lean de `evaluacionTdPd 2` (corpus, `D22`) con `BolaDeBloch.lean`. Para todo
   `d ≥ 2` el corpus ya prueba la saturación y el defecto (`saturada_TdPd_iff`,

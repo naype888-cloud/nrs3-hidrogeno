@@ -10,3 +10,4 @@ import NRS3Hidrogeno.Caja
 import NRS3Hidrogeno.EscalaEntero
 import NRS3Hidrogeno.BolaDeBloch
 import NRS3Hidrogeno.Cierre
+import NRS3Hidrogeno.Espin
