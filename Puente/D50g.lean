@@ -1,10 +1,11 @@
 import NavaRobertsonCertificados.D50k_WordDefectBand
 import NavaRobertsonCertificados.D50_ProperTimeSurplus
+import Mathlib.Combinatorics.SimpleGraph.AdjMatrix
 import NavaRobertsonIndependent.Mathematics.D8_Szego
 import NavaRobertsonIndependent.Mathematics.D21_ElementalNRSInequality
 
 /-!
-# Bridge: the diagonals of the hydrogen cube cost the defects of `D50g`
+# Bridge: the hopping of the hydrogen cube and the cost of its diagonals (`D37`, `D50g`)
 
 Not a library of `nrs3-hidrogeno`: it is compiled inside the corpus
 (`cd nava-robertson-schrodinger && lake env lean ../nrs3-hidrogeno/Puente/D50g.lean`), because the
@@ -17,9 +18,83 @@ its length times that: `2` for a face diagonal, `3` for a body diagonal. The cos
 for `d = 2, 3` and positive from `d = 4` (`D50`, `D20`), which is where `C_N(d) > 1` (`D8`).
 -/
 
-open WordDefect WordDefectBand TransportPosition NearMaxTension GramStep PathGraph3DNRS ProperTimeAxis GroupVelocity VelocityBand
+open SimpleGraph WordDefect WordDefectBand TransportPosition NearMaxTension GramStep PathGraph3DNRS ProperTimeAxis GroupVelocity VelocityBand
 
 namespace Puente
+
+/-! ## The hopping of the cube is `ρ_x T_x + ρ_y T_y + ρ_z T_z`
+
+The graph of the cube of `PhyslibAlpha.CondensedMatter.LatticeModels.BoxGraph` is the box product
+of three paths; its adjacency operator is the sum over the axes of the hop of the path,
+`A_d = ρ_d T_d` (`D3`), lifted to the axis (`D37`). -/
+
+open Classical in
+/-- **The adjacency operator of the cube graph is `ρ_x T_x + ρ_y T_y + ρ_z T_z`.** -/
+theorem adjacency_cube {dx dy dz : ℕ} (hx : 2 ≤ dx) (hy : 2 ≤ dy) (hz : 2 ≤ dz) :
+    Matrix.toEuclideanLin
+        ((pathGraph dx □ (pathGraph dy □ pathGraph dz)).adjMatrix ℂ) =
+      (rho dx : ℂ) • TX (dx := dx) (dy := dy) (dz := dz) +
+        (rho dy : ℂ) • TY (dx := dx) (dy := dy) (dz := dz) +
+        (rho dz : ℂ) • TZ (dx := dx) (dy := dy) (dz := dz) := by
+  have hρ : ∀ d : ℕ, 2 ≤ d → (rho d : ℂ) ≠ 0 := by
+    intro d hd
+    have hd' : (2 : ℝ) ≤ d := by exact_mod_cast hd
+    have h1 : 0 < Real.cos (Real.pi / ((d : ℝ) + 1)) := by
+      apply Real.cos_pos_of_mem_Ioo
+      constructor
+      · have : 0 < Real.pi / ((d : ℝ) + 1) := by positivity
+        have := Real.pi_pos
+        linarith
+      · rw [div_lt_iff₀ (by positivity)]
+        nlinarith [Real.pi_pos]
+    have : rho d ≠ 0 := by unfold rho; positivity
+    exact_mod_cast this
+  have hM : (pathGraph dx □ (pathGraph dy □ pathGraph dz)).adjMatrix ℂ =
+      (rho dx : ℂ) • liftAlong (eX dx dy dz) (Td dx) +
+        (rho dy : ℂ) • liftAlong (eY dx dy dz) (Td dy) +
+        (rho dz : ℂ) • liftAlong (eZ dx dy dz) (Td dz) := by
+    have hT : ∀ d : ℕ, 2 ≤ d → ∀ i j : Fin d, (rho d : ℂ) * Td d i j = Ad d i j := by
+      intro d hd i j
+      have := hρ d hd
+      unfold Td
+      field_simp
+    ext ⟨x, y, z⟩ ⟨x', y', z'⟩
+    simp only [Matrix.add_apply, Matrix.smul_apply, liftAlong, Matrix.of_apply, eX, eY, eZ,
+      Equiv.refl_apply, Equiv.coe_fn_mk, smul_eq_mul, ← mul_assoc, hT dx hx, hT dy hy, hT dz hz,
+      Ad, MinStep, SimpleGraph.adjMatrix_apply, SimpleGraph.boxProd_adj, pathGraph_adj,
+      Prod.mk.injEq]
+    by_cases a1 : x = x' <;> by_cases a2 : y = y' <;> by_cases a3 : z = z' <;> simp_all
+  simp only [TX, TY, TZ, ← map_smul, ← map_add, hM]
+
+open Classical in
+/-- **The hop form of the cube is `⟨ψ, (ρ_x T_x + ρ_y T_y + ρ_z T_z) ψ⟩`.** For a real `f` on the
+cube, `Σ_{s,t} [s ~ t] f(s) f(t)` is the real part of that inner product. With
+`NRS3Hidrogeno.adjForm_boxSet`, the hop form of the integer cube of `nrs3-hidrogeno` is the
+quadratic form of the transport `T_d` of each axis (`D37`). -/
+theorem form_cube {dx dy dz : ℕ} (hx : 2 ≤ dx) (hy : 2 ≤ dy) (hz : 2 ≤ dz)
+    (f : Fin dx × Fin dy × Fin dz → ℝ) :
+    ∑ s : Fin dx × Fin dy × Fin dz, ∑ t : Fin dx × Fin dy × Fin dz,
+        (if (pathGraph dx □ (pathGraph dy □ pathGraph dz)).Adj s t then (1 : ℝ) else 0) *
+          (f s * f t) =
+      (inner ℂ (WithLp.toLp 2 (fun s => (f s : ℂ)) : EuclideanSpace ℂ (Fin dx × Fin dy × Fin dz))
+        (((rho dx : ℂ) • TX (dx := dx) (dy := dy) (dz := dz) +
+            (rho dy : ℂ) • TY (dx := dx) (dy := dy) (dz := dz) +
+            (rho dz : ℂ) • TZ (dx := dx) (dy := dy) (dz := dz))
+          (WithLp.toLp 2 (fun s => (f s : ℂ))))).re := by
+  rw [← adjacency_cube hx hy hz]
+  have h : inner ℂ (WithLp.toLp 2 (fun s => (f s : ℂ)) :
+        EuclideanSpace ℂ (Fin dx × Fin dy × Fin dz))
+      (Matrix.toEuclideanLin ((pathGraph dx □ (pathGraph dy □ pathGraph dz)).adjMatrix ℂ)
+        (WithLp.toLp 2 (fun s => (f s : ℂ)))) =
+      ((∑ s : Fin dx × Fin dy × Fin dz, ∑ t : Fin dx × Fin dy × Fin dz,
+        (if (pathGraph dx □ (pathGraph dy □ pathGraph dz)).Adj s t then (1 : ℝ) else 0) *
+          (f s * f t) : ℝ) : ℂ) := by
+    simp [PiLp.inner_apply, Matrix.mulVec, dotProduct, SimpleGraph.adjMatrix_apply]
+    refine Finset.sum_congr rfl fun s _ => ?_
+    rw [Finset.sum_mul]
+    refine Finset.sum_congr rfl fun t _ => ?_
+    split_ifs <;> simp [mul_comm]
+  rw [h, Complex.ofReal_re]
 
 lemma wordDefect_const (g : ℝ) (w : List (Fin 3)) :
     wordDefect (fun _ => g) w = (w.length : ℝ) * g := by
@@ -128,5 +203,28 @@ theorem word_delay_pos {d : ℕ} (hd : 4 ≤ d) {Φ : H3D d d d} (hΦ : ‖Φ‖
   have := P.delay_ge hpos.le
   rw [hc] at this ⊢
   linarith [this]
+
+/-! ## One statement
+
+The hopping of the cube and the words of `D50g` are the same three letters: the operator whose
+words are costed is the adjacency of the cube graph, and at maximal tension on the three axes each
+letter costs `defectGram d`. -/
+
+open Classical in
+/-- **The cube, in one statement.** For `d ≥ 2` and a unit state of maximal tension on the three
+axes: the adjacency of the cube graph of side `d` is `ρ_d (T_x + T_y + T_z)`, and a word of
+length `n` in these hops costs `n · defectGram d`, which is `0` for `d = 2, 3` and positive for
+`d ≥ 4` (non-empty word). -/
+theorem cube_hopping_and_cost {d : ℕ} (hd : 2 ≤ d) {Φ : H3D d d d} (hΦ : ‖Φ‖ = 1)
+    (tx : tensionG (TX d d d) (PX d d d) Φ = 2 / ((d : ℝ) - 1))
+    (ty : tensionG (TY d d d) (PY d d d) Φ = 2 / ((d : ℝ) - 1))
+    (tz : tensionG (TZ d d d) (PZ d d d) Φ = 2 / ((d : ℝ) - 1)) :
+    Matrix.toEuclideanLin ((pathGraph d □ (pathGraph d □ pathGraph d)).adjMatrix ℂ) =
+        (rho d : ℂ) • (TX d d d + TY d d d + TZ d d d) ∧
+      (∀ w : List (Fin 3),
+        wordDefect (cubeDefect d d d Φ) w = (w.length : ℝ) * defectGram d) ∧
+      (4 ≤ d → ∀ {w : List (Fin 3)}, w ≠ [] → 0 < wordDefect (cubeDefect d d d Φ) w) := by
+  refine ⟨?_, fun w => word_cost hd hΦ tx ty tz w, fun h4 w hw => word_cost_pos h4 hΦ tx ty tz hw⟩
+  rw [adjacency_cube hd hd hd, smul_add, smul_add]
 
 end Puente
