@@ -765,11 +765,22 @@
       <div class="tab-pane active" id="tab-1">
         <div class="control-card">
           <div class="control-title">
+            <span>Cubo de la serie (N, N, N)</span>
+            <span class="badge badge-gold" id="badge-boxn">N = 4</span>
+          </div>
+          <p class="control-desc" id="boxn-desc">
+            Cubo (±4, ±4, ±4): primer cubo con salto (d ≥ 4; d = 2, 3 son Bloch). La serie sigue 4, 5, 6, 7, … hasta N. Las constantes certificadas (v*, ϱ, θ, defecto) son las de d = 4.
+          </p>
+          <input type="range" id="slider-box-n" min="4" max="12" step="1" value="4" oninput="setBoxN(this.value)">
+        </div>
+
+        <div class="control-card">
+          <div class="control-title">
             <span>Escala de los Cubitos de Esquina</span>
             <span class="badge badge-purple" id="badge-scale">AMPLIADO x3</span>
           </div>
           <p class="control-desc">
-            En las 8 esquinas (±4, ±4, ±4), los 3 ejes coinciden en la banda. En vista general van ampliados x3 para verse bien en las vistas generales.
+            En las 8 esquinas (±<span class="nval">4</span>, ±<span class="nval">4</span>, ±<span class="nval">4</span>), los 3 ejes coinciden en la banda. En vista general van ampliados x3 para verse bien en las vistas generales.
           </p>
           <div class="btn-group">
             <button class="action-btn" id="btn-scale-x3" onclick="setScaleMode(3)">Ampliación x3 (Diagrama)</button>
@@ -795,7 +806,7 @@
           </div>
           <div class="toggle-row">
             <span class="toggle-label">
-              <span class="indicator-dot" style="background:#708090;"></span> Planos de Estado (Aristas ±4)
+              <span class="indicator-dot" style="background:#708090;"></span> Planos de Estado (Aristas ±<span class="nval">4</span>)
             </span>
             <label class="switch"><input type="checkbox" id="toggle-planes" checked onchange="updateLayers()"><span class="slider"></span></label>
           </div>
@@ -2182,6 +2193,7 @@
     let blochTheta = Math.PI / 2;
     let blochPhi = Math.PI / 4;
     let currentPos = [1, 0, 0]; // Start at distance 1 from nucleus
+    let boxN = 4; // cube edge N (d = N): 4 = first cube with hopping, 5 = first cube of hydrogen, ... up to N
     let trailPositions = [];
     let accumulatedGramDefects = 0;
 
@@ -2246,7 +2258,7 @@
       bottom: { pos: [0.001, -22, 0.001], target: [0, 0, 0] },     // From bottom -Z
       top: { pos: [0.001, 22, 0.001], target: [0, 0, 0] },        // Plan view from +Z
       front: { pos: [22, 0.001, 0.001], target: [0, 0, 0] },      // Elevation from +X
-      corner: { pos: [5.2, 5.2, 5.2], target: [4, 4, 4] },        // Macro Zoom on (+4,+4,+4)
+      corner: { pos: [5.2, 5.2, 5.2], target: [4, 4, 4] },        // Macro Zoom on (+N,+N,+N), updated by setBoxN
       free: null
     };
     let currentPreset = 'iso1';
@@ -2361,7 +2373,7 @@
     function buildPlanes() {
       while (planesGroup.children.length > 0) planesGroup.remove(planesGroup.children[0]);
 
-      const L = 4.0;
+      const L = boxN;
       const edges = [
         [[-L, -L, -L], [L, -L, -L]],
         [[L, -L, -L], [L, L, -L]],
@@ -2400,8 +2412,9 @@
       while (cornerCubesGroup.children.length > 0) cornerCubesGroup.remove(cornerCubesGroup.children[0]);
 
       const signs = [-1, 1];
-      const L = 4.0;
-      const visualSide = scaleMultiplier === 1 ? RHO_4 : 0.82;
+      const L = boxN;
+      // rho(4) is certified only for d = 4 (D44); other N always drawn as diagram cubes
+      const visualSide = (scaleMultiplier === 1 && boxN === 4) ? RHO_4 : 0.82;
 
       signs.forEach(sx => {
         signs.forEach(sy => {
@@ -2513,9 +2526,9 @@
       while (orbitalsGroup.children.length > 0) orbitalsGroup.remove(orbitalsGroup.children[0]);
 
       const r0 = 2.4;
-      for (let x = -4; x <= 4; x++) {
-        for (let y = -4; y <= 4; y++) {
-          for (let z = -4; z <= 4; z++) {
+      for (let x = -boxN; x <= boxN; x++) {
+        for (let y = -boxN; y <= boxN; y++) {
+          for (let z = -boxN; z <= boxN; z++) {
             if (x === 0 && y === 0 && z === 0) continue; // Nucleus cell excluded
 
             const r2 = x * x + y * y + z * z;
@@ -2613,8 +2626,8 @@
       // Rule: cannot hop into (0,0,0) - nucleus excluded!
       if (nextPos[0] === 0 && nextPos[1] === 0 && nextPos[2] === 0) return false;
 
-      // Bound within the finite box [-4, 4]
-      if (Math.abs(nextPos[axisIndex]) > 4) return false;
+      // Bound within the finite box [-N, N]
+      if (Math.abs(nextPos[axisIndex]) > boxN) return false;
 
       const prevPos = [...currentPos];
       currentPos = nextPos;
@@ -2872,6 +2885,26 @@
       orbitalsGroup.visible = document.getElementById('toggle-orbitals').checked;
       nucleusGroup.visible = document.getElementById('toggle-nucleus').checked;
       hoppingGroup.visible = document.getElementById('toggle-hopping').checked;
+    }
+
+    function setBoxN(v) {
+      boxN = Math.max(4, Math.min(12, parseInt(v, 10) || 4));
+      cameraPresets.corner = { pos: [boxN + 1.2, boxN + 1.2, boxN + 1.2], target: [boxN, boxN, boxN] };
+      const role = boxN === 4 ? 'primer cubo con salto (d ≥ 4; d = 2, 3 son Bloch)'
+        : boxN === 5 ? 'primer cubo del hidrógeno'
+        : 'siguiente cubo de la serie';
+      document.getElementById('badge-boxn').textContent = 'N = ' + boxN;
+      document.getElementById('slider-box-n').value = boxN;
+      document.querySelectorAll('.nval').forEach(e => { e.textContent = boxN; });
+      document.getElementById('boxn-desc').textContent =
+        'Cubo (±' + boxN + ', ±' + boxN + ', ±' + boxN + '): ' + role +
+        '. La serie sigue 4, 5, 6, 7, … hasta N. Las constantes certificadas (v*, ϱ, θ, defecto) son las de d = 4.';
+      if (currentPos.some(c => Math.abs(c) > boxN)) currentPos = [1, 0, 0];
+      buildPlanes();
+      buildCornerCubes();
+      buildCones();
+      buildOrbitals();
+      updateLayers();
     }
 
     function setScaleMode(mode) {
