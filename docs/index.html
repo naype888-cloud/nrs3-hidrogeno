@@ -3,78 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RS^N³ · Cristales</title>
-<meta name="description" content="La simetría de cada red de Bravais da la forma de las covarianzas y los corchetes; el espectro da el tamaño. Las 14 redes, sus grupos puntuales y la cota de Robertson, en Lean 4 sobre Physlib.">
+<title>RS^N³ · Hidrógeno</title>
+<meta name="description" content="El átomo de hidrógeno sobre el cubo RS^N³: el cubito azul fija el único salto posible (naranja), la corriente máxima es el tope del cubo y el 1s anda a una fracción α de él. Verificado en Lean 4.">
 <meta name="theme-color" content="#06080b">
 <link rel="icon" href="media/favicon.svg" type="image/svg+xml">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="RS^N³ · Cristales">
-<meta property="og:title" content="RS^N³ · Cristales — la simetría da la forma, el espectro da el tamaño">
-<meta property="og:description" content="14 redes de Bravais, sus grupos puntuales y la cota de Robertson sobre cristales, verificados en Lean 4.">
-<meta property="og:url" content="https://naype888-cloud.github.io/nrs3-cristales/">
-<meta property="og:image" content="https://naype888-cloud.github.io/nrs3-cristales/media/og.png">
-<meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="media/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="shared/css/tokens.css">
-<link rel="stylesheet" href="shared/css/landing.css?v=20261027">
+<link rel="stylesheet" href="shared/css/landing.css?v=20261101">
 <script>document.documentElement.classList.add("js")</script>
 </head>
 <body class="landing">
 <main class="stage">
   <section class="hero" aria-labelledby="title">
     <figure class="scene">
-      <canvas id="crystal" tabindex="0" role="img" aria-label="Una red de Bravais en perspectiva. El sitio central y sus vecinos en naranja; unos sitios viajan por la inversión n ↦ −n y la red queda igual. Flechas izquierda y derecha cambian de red."></canvas>
+      <canvas id="crystal" tabindex="0" role="img" aria-label="Un cubo de N por N por N celdas. Cada celda azul es una posición que puede tomar el electrón; el tamaño del punto sigue la densidad del 1s. Una huella naranja muestra al electrón recorriendo la red un paso de eje a la vez."></canvas>
       <p class="readout" id="readout" aria-live="polite"></p>
-      <noscript><img class="fallback" src="media/banner.svg" alt=""></noscript>
-      <figcaption><span id="cap">n ↦ −n · la red no cambia</span><span class="hint"> · clic: otra red · arrastra para girar</span></figcaption>
-      <nav class="dots" id="dots" aria-label="Elegir red"></nav>
+      <figcaption><span id="cap">el electrón recorre la red · un paso de eje a la vez</span><span class="hint"> · clic: otro N · arrastra para girar</span></figcaption>
+      <nav class="dots" id="dots" aria-label="Elegir N"></nav>
     </figure>
 
     <div class="copy">
-      <p class="kicker">Simetría · incertidumbre · Lean 4</p>
-      <h1 id="title">RS<sup>N</sup>³<br>Cristales</h1>
-      <p class="sub">La simetría da la forma; el espectro, el tamaño</p>
+      <p class="kicker">Cubo · salto · Lean 4</p>
+      <h1 id="title">RS<sup>N</sup>³<br>Hidrógeno</h1>
+      <p class="sub">La red es la definición de movimiento</p>
       <div class="rule" aria-hidden="true"><span></span></div>
 
       <ol class="ticker" aria-label="Los resultados">
-        <li><a href="formal/#s2"><span class="n">01 / 08</span><span class="name">Las catorce redes de Bravais</span><code>14 redes · 7 sistemas · |G| ∈ {2, 4, 8, 12, 16, 24, 48}</code></a></li>
-        <li><a href="formal/#s3"><span class="n">02 / 08</span><span class="name">Toda red es centrosimétrica</span><code>n ↦ −n ∈ Aut(g)</code></a></li>
-        <li><a href="formal/#s3"><span class="n">03 / 08</span><span class="name">La simetría anula entradas</span><code>Σ<sub>HX</sub> = 0 en toda onda plana</code></a></li>
-        <li><a href="formal/#s5"><span class="n">04 / 08</span><span class="name">El espectro fija lo que sobrevive</span><code>Ω<sub>HX</sub> = −(t / 2|Λ|) Σ r(δ) sin(k·δ)</code></a></li>
-        <li><a href="formal/#s5"><span class="n">05 / 08</span><span class="name">En cajas grandes, la velocidad de grupo</span><code>Ω<sub>HX</sub> → −½ ∂<sub>r</sub>ε(k)</code></a></li>
-        <li><a href="formal/#s3"><span class="n">06 / 08</span><span class="name">El grupo pequeño de cada k</span><code>s ∈ G<sub>k</sub>, s·r = −r ⇒ Σ<sub>HX</sub> = Ω<sub>HX</sub> = 0</code></a></li>
-        <li><a href="formal/#s4"><span class="n">07 / 08</span><span class="name">Lo inequivalente no se correlaciona</span><code>C(V, W) = 0  (Schur)</code></a></li>
-        <li><a href="formal/#s6"><span class="n">08 / 08</span><span class="name">Robertson 1934 en estados de cristal</span><code>|det Ω| ≤ det Σ</code></a></li>
+        <li><a href="#s1"><span class="n">01 / 06</span><span class="name">El cubo es finito</span><code>card (cubo M) = (2M)³</code></a></li>
+        <li><a href="#s1"><span class="n">02 / 06</span><span class="name">El único salto es el de eje</span><code>T = Σᵢ (ψ(p+eᵢ) − ψ(p))² ≥ 0</code></a></li>
+        <li><a href="#s1"><span class="n">03 / 06</span><span class="name">La cinética es (6 − A) / 2a²</span><code>kineticFull = ⟨ψ,(6−A)ψ⟩ / 2a²</code></a></li>
+        <li><a href="#s1"><span class="n">04 / 06</span><span class="name">El Coulomb queda acotado en el cubo</span><code>−k/r ≥ −(2k/√3a)·‖ψ‖²</code></a></li>
+        <li><a href="#s1"><span class="n">05 / 06</span><span class="name">Tope de velocidad del cubo</span><code>‖vᵢψ‖ ≤ 2ta·‖ψ‖ = ‖ψ‖/a</code></a></li>
+        <li><a href="#s1"><span class="n">06 / 06</span><span class="name">El 1s anda a α del tope</span><code>v_Bohr / cap(ƛ_C) = α</code></a></li>
       </ol>
       <div class="progress" aria-hidden="true"><span></span></div>
 
-      <p class="spaces">Σ · Ω · G<sub>k</sub> · ε(k)</p>
+      <p class="spaces">azul = cubitos · naranja = salto (corriente máxima)</p>
     </div>
   </section>
 
-  <nav class="doors" aria-label="Elegir versión">
-    <a class="door" href="didactic/">
-      <span class="k">Didáctica</span>
-      <span class="t">Del cristal a la incertidumbre, en ocho pasos</span>
-      <span class="d">Sin lenguaje previo: cambia la red, gira el estado y mira cómo la simetría pone ceros donde debe.</span>
-      <span class="go" aria-hidden="true"></span>
-    </a>
-    <a class="door" href="formal/">
-      <span class="k">Formal</span>
-      <span class="t">La nota, con cada lema y su estado</span>
-      <span class="d">Definiciones, enunciados con su nombre en Lean, el libro de lemas y qué sigue abierto.</span>
-      <span class="go" aria-hidden="true"></span>
-    </a>
-    <a class="door" href="lab/">
-      <span class="k">Laboratorio</span>
-      <span class="t">El instrumento completo</span>
-      <span class="d">Las 14 redes con todos sus parámetros, el estado, las matrices Σ y Ω, la banda y la caja que converge.</span>
-      <span class="go" aria-hidden="true"></span>
-    </a>
+  <nav class="doors" id="s1" aria-label="Qué está probado y qué no">
+    <div class="door">
+      <span class="k">Probado en Lean</span>
+      <span class="t">Seis enunciados, sin sorry</span>
+      <span class="d">Cubo finito, forma cinética, cota de Coulomb, tope de velocidad y la escala a = ħ/(mc) = α·a₀. Axiomas: propext, Classical.choice, Quot.sound.</span>
+    </div>
+    <div class="door">
+      <span class="k">Exploratorio</span>
+      <span class="t">E₀ → −0.5 al achicar el cubito</span>
+      <span class="d">Prueba numérica (no Lean): −0.422, −0.454, −0.474 con a = 1, 0.7, 0.5 u.a. El nivel se acerca a Rydberg sin alcanzarlo en ningún cubo finito.</span>
+    </div>
+    <div class="door">
+      <span class="k">Abierto</span>
+      <span class="t">Los niveles contra Physlib</span>
+      <span class="d">Falta la cota superior de E₀ con función de prueba y el enunciado contra <code>energyLevel</code>. La velocidad del 1s es αc; la banda Ϙ(d) es de las corrientes cercanas a c.</span>
+    </div>
   </nav>
 </main>
-<script src="shared/js/cristales-core.js?v=20261027"></script>
-<script src="shared/js/figures.js?v=20261027"></script>
-<script src="shared/js/landing.js?v=20261027" defer></script>
+<script src="shared/js/hidrogeno.js?v=20261101" defer></script>
 </body>
 </html>
