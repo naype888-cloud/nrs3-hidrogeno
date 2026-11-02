@@ -75,4 +75,56 @@ theorem word_cost_gap {d : ℕ} (hd : 2 ≤ d) {Φ : H3D d d d} (hΦ : ‖Φ‖ 
       (w.length : ℝ) * (Gnomon.geometricGap d * (2 + Gnomon.geometricGap d) / ((d : ℝ) - 1) ^ 2) := by
   rw [word_cost hd hΦ tx ty tz w, defectGram_eq_gap hd]
 
+/-! ## The visible hypotheses: what the step is in seconds
+
+Nothing below is derived. A physical step is given by three hypotheses, listed as fields: the cell
+side `a`, the speed of light `c`, and the resolution floor `ℓ_P ≤ a` (Planck length as the limit of
+resolution, with no extra factor: Mead 1964, Garay 1995; the factor `y` of the old SBPK
+calibration is not used). The duration of a step is `a / c`. -/
+
+/-- A physical step of the cube: the hypotheses that turn the dimensionless defect into time. -/
+structure PhysicalStep where
+  /-- Side of a cell. -/
+  a : ℝ
+  /-- Speed of light. -/
+  c : ℝ
+  /-- Planck length. -/
+  lP : ℝ
+  c_pos : 0 < c
+  lP_pos : 0 < lP
+  /-- The Planck length is the floor of the resolution: a cell is not smaller. -/
+  resolution : lP ≤ a
+
+/-- A step lasts `a / c`. -/
+noncomputable def PhysicalStep.duration (P : PhysicalStep) : ℝ := P.a / P.c
+
+/-- The delay of a word of `D50g`, in seconds: its defect times the duration of a step. -/
+noncomputable def PhysicalStep.delay (P : PhysicalStep) (defect : ℝ) : ℝ := defect * P.duration
+
+lemma PhysicalStep.duration_ge (P : PhysicalStep) : P.lP / P.c ≤ P.duration :=
+  div_le_div_of_nonneg_right P.resolution P.c_pos.le
+
+/-- **The delay of a diagonal has the floor `defect · ℓ_P / c`** (`defect · t_P`), whatever the
+cell. -/
+theorem PhysicalStep.delay_ge (P : PhysicalStep) {g : ℝ} (hg : 0 ≤ g) :
+    g * (P.lP / P.c) ≤ P.delay g :=
+  mul_le_mul_of_nonneg_left P.duration_ge hg
+
+/-- **The bridge, in seconds.** From `d = 4` on, at maximal tension, every non-empty word of the
+cube has a delay of at least `defectGram d · t_P` per letter, under the hypotheses of `PhysicalStep`. -/
+theorem word_delay_pos {d : ℕ} (hd : 4 ≤ d) {Φ : H3D d d d} (hΦ : ‖Φ‖ = 1)
+    (tx : tensionG (TX d d d) (PX d d d) Φ = 2 / ((d : ℝ) - 1))
+    (ty : tensionG (TY d d d) (PY d d d) Φ = 2 / ((d : ℝ) - 1))
+    (tz : tensionG (TZ d d d) (PZ d d d) Φ = 2 / ((d : ℝ) - 1)) (P : PhysicalStep)
+    {w : List (Fin 3)} (hw : w ≠ []) :
+    (w.length : ℝ) * defectGram d * (P.lP / P.c) ≤ P.delay (wordDefect (cubeDefect d d d Φ) w) ∧
+      0 < P.delay (wordDefect (cubeDefect d d d Φ) w) := by
+  have hpos := word_cost_pos hd hΦ tx ty tz hw
+  have hc := word_cost (by omega) hΦ tx ty tz w
+  have hg : 0 < defectGram d := gramStep_gram_pos hd
+  refine ⟨?_, mul_pos hpos (div_pos (P.lP_pos.trans_le P.resolution) P.c_pos)⟩
+  have := P.delay_ge hpos.le
+  rw [hc] at this ⊢
+  linarith [this]
+
 end Puente
