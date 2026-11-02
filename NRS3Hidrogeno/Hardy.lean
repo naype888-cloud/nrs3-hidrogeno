@@ -10,8 +10,8 @@ supported in a finite set `S`, the sum over the axis edges of the squared differ
 on the cube, and it gives a lower bound of the ground energy that does not depend on the cell `a`
 nor on the size of the cube.
 
-The existence of the supersolution `w = r^(-α)` with `λ > 0` is a hypothesis here
-(`SuperSolution`): numerically `λ ≈ 0.16` for `α = 0.4`; it is not proved.
+The existence of such a supersolution `w` (for instance `w = r^(-α)`) with `λ > 0` is a hypothesis
+of `energyFull_ge_uniform`: it is not proved in this file.
 -/
 
 namespace NRS3Hidrogeno
