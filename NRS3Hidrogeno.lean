@@ -6,8 +6,4 @@ import NRS3Hidrogeno.Variacional
 import NRS3Hidrogeno.Prueba
 import NRS3Hidrogeno.Limite
 import NRS3Hidrogeno.Hardy
-import NRS3Hidrogeno.Hilbert.Variacional
-import NRS3Hidrogeno.Hilbert.Salto
-import NRS3Hidrogeno.Hilbert.Velocidad
-import NRS3Hidrogeno.Hilbert.Hidrogeno
-import NRS3Hidrogeno.Hilbert.Bloque
+import PhyslibAlpha.CondensedMatter.LatticeModels.BoxGraph

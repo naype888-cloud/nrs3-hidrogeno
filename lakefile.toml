@@ -6,8 +6,7 @@ autoImplicit = false
 
 [[require]]
 name = "Physlib"
-git = "https://github.com/naype888-cloud/physlib.git"
-rev = "6aa4163ffeecfdad676085cdb52a5d89e11573f4"
+path = "../physlib_wt_lattice"
 
 [[lean_lib]]
 name = "NRS3Hidrogeno"
