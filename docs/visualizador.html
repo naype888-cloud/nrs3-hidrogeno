@@ -181,7 +181,7 @@
       background: rgba(255,255,255,0.15);
     }
 
-    /* Preset Views Grid (Claude's 6 Diagrammatic Views + Free) */
+    /* Preset Views Grid (6 diagrammatic views + Free) */
     .views-section {
       padding: 12px 20px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -704,20 +704,20 @@
   <aside id="left-sidebar" class="hud-panel">
     <div class="sidebar-header">
       <div class="brand-kicker">
-        <span class="badge badge-green">ENTEROS ℤ³ \ {0}</span>
+        <span class="badge badge-green">SITIOS ENTEROS</span>
         <span class="badge badge-purple">BOLA DE BLOCH (LEAN 4)</span>
-        <span class="badge badge-gold">HARDY = 1/4 EXACTO</span>
+        <span class="badge badge-gold">HARDY: CONSTANTE 1/4</span>
       </div>
       <h1 class="app-title">HIDRÓGENO EN <span>ENTEROS</span></h1>
       <p class="app-subtitle">Cubo Canónico RS^N³, Esfera de Bloch & Defecto Robertson-Schrödinger</p>
       <button class="close-sidebar-btn" onclick="toggleSidebar(false)" title="Minimizar panel">✕</button>
     </div>
 
-    <!-- Camera Presets (Claude's 6 Diagrammatic Views + Free) -->
+    <!-- Camera Presets (6 diagrammatic views + Free) -->
     <div class="views-section">
       <div class="section-label">
         <span>Vistas Canónicas</span>
-        <span style="color:var(--accent-gold); font-size:9px;">[Diagrama Claude]</span>
+        <span style="color:var(--accent-gold); font-size:9px;">[6 vistas]</span>
       </div>
       <div class="views-grid">
         <button class="view-btn active" id="btn-view-iso1" onclick="setCameraView('iso1')">
@@ -769,7 +769,7 @@
             <span class="badge badge-purple" id="badge-scale">AMPLIADO x3</span>
           </div>
           <p class="control-desc">
-            En las 8 esquinas (±4, ±4, ±4), los 3 ejes coinciden en la banda. En vista general van ampliados x3 para coincidir exactamente con el render de Claude.
+            En las 8 esquinas (±4, ±4, ±4), los 3 ejes coinciden en la banda. En vista general van ampliados x3 para verse bien en las vistas generales.
           </p>
           <div class="btn-group">
             <button class="action-btn" id="btn-scale-x3" onclick="setScaleMode(3)">Ampliación x3 (Diagrama)</button>
@@ -813,13 +813,13 @@
           </div>
           <div class="toggle-row">
             <span class="toggle-label">
-              <span class="indicator-dot" style="background:var(--accent-cyan);"></span> Sitios Enteros ℤ³ \ {0} (1s)
+              <span class="indicator-dot" style="background:var(--accent-cyan);"></span> Sitios enteros (1s)
             </span>
             <label class="switch"><input type="checkbox" id="toggle-orbitals" checked onchange="updateLayers()"><span class="slider"></span></label>
           </div>
           <div class="toggle-row">
             <span class="toggle-label">
-              <span class="indicator-dot" style="background:#ef4444;"></span> Núcleo = Bola de Bloch (0,0,0)
+              <span class="indicator-dot" style="background:#ef4444;"></span> Núcleo = Bola de Bloch (un estado, no un lugar)
             </span>
             <label class="switch"><input type="checkbox" id="toggle-nucleus" checked onchange="updateLayers()"><span class="slider"></span></label>
           </div>
@@ -833,11 +833,11 @@
 
         <div class="control-card">
           <div class="control-title">
-            <span>Red en Enteros: Núcleo en Origen</span>
+            <span>Red en enteros: el núcleo no es un lugar</span>
             <span class="badge badge-green">R² ≥ 1</span>
           </div>
           <p class="control-desc">
-            Los sitios del electrón son enteros estrictos <code>p ∈ ℤ³ \ {0}</code>. El origen es el núcleo (excluido por <code>ψ(0)=0</code>). La distancia al núcleo satisface <code>r = √(x²+y²+z²) ≥ 1</code>.
+            Los sitios del electrón son enteros estrictos, medidos desde la celda del núcleo, que no lleva posición sino un estado (excluida: <code>ψ(núcleo)=0</code>). La distancia al núcleo satisface <code>r = √(x²+y²+z²) ≥ 1</code>.
           </p>
         </div>
       </div>
@@ -848,8 +848,8 @@
           <span class="highlight">REGLA FUNDAMENTAL DE LA RED:</span><br>
           En NRS³, <span class="cyan">el único salto elemental es de eje</span>:<br>
           <code>p ↦ p ± e_x, &nbsp; p ± e_y, &nbsp; p ± e_z</code><br><br>
-          <span class="purple">¡La diagonal NO existe como salto directo!</span><br>
-          Una diagonal es una composición ortogonal de 2 o 3 pasos de eje con costo de <span class="highlight">defectos Gram</span> y retraso con <span class="cyan">piso de Planck ℓ_P/c</span>.
+          <span class="purple">La diagonal existe, como enlace efectivo: no es un paso primitivo.</span><br>
+          No tiene operador ni valor propio. Para la incertidumbre no hay diagonal (pide un par distinto, a 90°); la diagonal es lo contrario: <code>A</code> y <code>B</code> conmutan, en una misma línea, y los dos órdenes llegan al mismo sitio. Se cuenta en pasos de incertidumbre: la de cara son <span class="highlight">2 pasos</span> de eje y la de cuerpo, <span class="highlight">3</span>. Cada paso cuesta un <span class="highlight">defecto de Gram</span> (cero en <code>d = 2, 3</code>, positivo desde <code>d = 4</code>) y el retraso lleva el <span class="cyan">piso de Planck ℓ_P/c</span>.
         </div>
 
         <div class="control-card">
@@ -859,7 +859,7 @@
           </div>
           <div class="btn-group">
             <button class="action-btn" id="btn-toggle-auto-hop" onclick="toggleAutoHopping()">⏸ Pausar</button>
-            <button class="action-btn secondary" onclick="resetElectron()">↺ Origen</button>
+            <button class="action-btn secondary" onclick="resetElectron()">↺ Reiniciar</button>
           </div>
           <div class="range-wrap" style="margin-top:10px;">
             <div class="range-header"><span>Frecuencia de Salto:</span><span id="label-hop-speed">4 Hz</span></div>
@@ -880,8 +880,11 @@
             <button class="hop-btn" onclick="manualHop(1, -1)">-Y</button>
             <button class="hop-btn" onclick="manualHop(2, -1)">-Z</button>
           </div>
-          <button class="action-btn secondary" style="width:100%; margin-top:8px;" onclick="hopDiagonal()">
-            ⚡ Ejecutar Diagonal Ortogonal (2 Pasos)
+          <button class="action-btn secondary" style="width:100%; margin-top:8px;" onclick="hopDiagonal(2)">
+            ⚡ Diagonal de cara (2 pasos)
+          </button>
+          <button class="action-btn secondary" style="width:100%; margin-top:6px;" onclick="hopDiagonal(3)">
+            ⚡ Diagonal de cuerpo (3 pasos)
           </button>
         </div>
 
@@ -980,14 +983,14 @@
 
         <div class="control-card">
           <div class="control-title">
-            <span>HardyEntero.lean (Constante 1/4 Exacta)</span>
+            <span>HardyEntero.lean (constante 1/4)</span>
             <span class="badge badge-green">0 SORRY</span>
           </div>
           <div class="formula-box">
             <span class="green">theorem hardy_entero:</span><br>
             <code>(1/4) ∑_p (1/R²) ψ² ≤ ∑_aristas (Δψ)²</code><br><br>
-            ¡La constante <span class="highlight">1/4</span> es EXACTA y coincide con la del continuo!<br><br>
-            Polinomio positivo de Claude (t = R² - 1 ≥ 0):<br>
+            La constante <span class="highlight">1/4</span> vale para todo soporte finito con ψ(núcleo) = 0.<br><br>
+            Polinomio con coeficientes positivos (t = R² - 1 ≥ 0):<br>
             <code>P(t) = 17064027/262144 + (16640955/65536)t + (6421495/16384)t² + (1309135/4096)t³ + ... + (5/16)t⁷ > 0</code>
           </div>
         </div>
@@ -1040,7 +1043,7 @@
   <div id="scene-legend">
     <div class="legend-item">
       <div class="legend-box" style="background:#ef4444;"></div>
-      <span>Núcleo (0,0,0) [Bola Bloch]</span>
+      <span>Núcleo [Bola de Bloch]</span>
     </div>
     <div class="legend-item">
       <div class="legend-box" style="background:#c084fc;"></div>
@@ -1071,7 +1074,7 @@
       <div class="hud-stat-val green" id="stat-radius">1.000 <span class="hud-stat-unit">≥ 1</span></div>
     </div>
     <div class="hud-stat">
-      <div class="hud-stat-title">Densidad |ψ|² (1s)</div>
+      <div class="hud-stat-title">Densidad ilustrativa (1s, no Lean)</div>
       <div class="hud-stat-val gold" id="stat-density">0.3679 <span class="hud-stat-unit">prob</span></div>
     </div>
     <div class="hud-stat">
@@ -1080,7 +1083,7 @@
     </div>
     <div class="hud-stat">
       <div class="hud-stat-title">Cota Hardy (1/4 R²)</div>
-      <div class="hud-stat-val" id="stat-hardy">0.250 <span class="hud-stat-unit">exacto</span></div>
+      <div class="hud-stat-val" id="stat-hardy">0.250 <span class="hud-stat-unit">cota</span></div>
     </div>
     <div class="hud-stat">
       <div class="hud-stat-title">Velocidad / v*(4)</div>
@@ -2166,7 +2169,8 @@
     const RHO_4_CUBE = Math.pow(RHO_4, 3);                // 0.0003882061 (D49d, D49t)
     const THETA_DEG = 7.43;                               // 7.43 degrees opening (D43)
     const THETA_RAD = THETA_DEG * Math.PI / 180;
-    const DEFECT_GRAM_UNIT = 2 - Math.sqrt(5) / 2;
+    const C_N4_SQ = 2 * 3 / (5 * Math.pow(Math.cos(Math.PI / 5), 2)) * (((25 + 2) / 6) * Math.pow(Math.sin(Math.PI / 5), 2) - 1);  // D8: C_N(4)^2
+    const DEFECT_GRAM_UNIT = (C_N4_SQ - 1) / 9;            // defectGram 4 = (C_N(4)^2 - 1)/(d-1)^2 = 0.001892 (D20)
 
     // Simulation State
     let scaleMultiplier = 3.0; // 3x in diagram views, 1x in macro
@@ -2647,18 +2651,18 @@
       executeAxisHop(axis, delta);
     }
 
-    // Diagonal hop composed strictly of 2 axis steps
-    function hopDiagonal() {
-      const ax1 = Math.floor(Math.random() * 3);
-      let ax2 = (ax1 + 1) % 3;
-      const d1 = currentPos[ax1] >= 3 ? -1 : 1;
-      const d2 = currentPos[ax2] >= 3 ? -1 : 1;
-      executeAxisHop(ax1, d1);
-      setTimeout(() => {
-        executeAxisHop(ax2, d2);
-        accumulatedGramDefects += 2 * DEFECT_GRAM_UNIT;
-        updateTelemetry();
-      }, 180);
+    // A diagonal is an effective link, not a primitive step: its axes commute, so the order does not
+    // matter, and it is counted in steps of uncertainty (2 for a face diagonal, 3 for a body diagonal).
+    function hopDiagonal(steps = 2) {
+      const a0 = Math.floor(Math.random() * 3);
+      const axes = [a0, (a0 + 1) % 3, (a0 + 2) % 3].slice(0, steps);
+      axes.forEach((ax, k) => setTimeout(() => {
+        executeAxisHop(ax, currentPos[ax] >= 3 ? -1 : 1);
+        if (k === steps - 1) {
+          accumulatedGramDefects += steps * DEFECT_GRAM_UNIT;
+          updateTelemetry();
+        }
+      }, 180 * k));
     }
 
     function updateTelemetry() {
@@ -2673,7 +2677,7 @@
       document.getElementById('stat-radius').innerHTML = `${r.toFixed(3)} <span class="hud-stat-unit">≥ 1</span>`;
       document.getElementById('stat-density').innerHTML = `${density.toFixed(4)} <span class="hud-stat-unit">prob</span>`;
       document.getElementById('stat-defect').innerHTML = `${rsDefect.toFixed(3)} <span class="hud-stat-unit">RS</span>`;
-      document.getElementById('stat-hardy').innerHTML = `${hardyWeight.toFixed(4)} <span class="hud-stat-unit">exacto</span>`;
+      document.getElementById('stat-hardy').innerHTML = `${hardyWeight.toFixed(4)} <span class="hud-stat-unit">cota</span>`;
       document.getElementById('stat-vel').innerHTML = `${V_STAR_4.toFixed(4)} <span class="hud-stat-unit">c_lat</span>`;
       document.getElementById('stat-gram').innerHTML = `${accumulatedGramDefects.toFixed(3)} <span class="hud-stat-unit">defectos</span>`;
     }
