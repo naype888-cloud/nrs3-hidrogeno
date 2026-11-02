@@ -1,6 +1,7 @@
 import NavaRobertsonCertificados.D50k_WordDefectBand
 import NavaRobertsonCertificados.D50_ProperTimeSurplus
 import NavaRobertsonIndependent.Mathematics.D8_Szego
+import NavaRobertsonIndependent.Mathematics.D21_ElementalNRSInequality
 
 /-!
 # Bridge: the diagonals of the hydrogen cube cost the defects of `D50g`
@@ -58,5 +59,20 @@ theorem word_cost_pos {d : ℕ} (hd : 4 ≤ d) {Φ : H3D d d d} (hΦ : ‖Φ‖ 
   rw [word_cost (by omega) hΦ tx ty tz]
   have : 0 < (w.length : ℝ) := by exact_mod_cast List.length_pos_iff.mpr hw
   exact mul_pos this (gramStep_gram_pos hd)
+
+/-- **`defectGram d` in terms of `δ(d) = C_N(d) - 1` (`D8`).** -/
+theorem defectGram_eq_gap {d : ℕ} (hd : 2 ≤ d) :
+    defectGram d = Gnomon.geometricGap d * (2 + Gnomon.geometricGap d) / ((d : ℝ) - 1) ^ 2 := by
+  rw [gramStep_gram hd, NRSInequality.CoherenceConstantSq_eq_sq hd]
+  ring
+
+/-- **A word costs `length · δ(2 + δ) / (d - 1)²`** at maximal tension on the three axes. -/
+theorem word_cost_gap {d : ℕ} (hd : 2 ≤ d) {Φ : H3D d d d} (hΦ : ‖Φ‖ = 1)
+    (tx : tensionG (TX d d d) (PX d d d) Φ = 2 / ((d : ℝ) - 1))
+    (ty : tensionG (TY d d d) (PY d d d) Φ = 2 / ((d : ℝ) - 1))
+    (tz : tensionG (TZ d d d) (PZ d d d) Φ = 2 / ((d : ℝ) - 1)) (w : List (Fin 3)) :
+    wordDefect (cubeDefect d d d Φ) w =
+      (w.length : ℝ) * (Gnomon.geometricGap d * (2 + Gnomon.geometricGap d) / ((d : ℝ) - 1) ^ 2) := by
+  rw [word_cost hd hΦ tx ty tz w, defectGram_eq_gap hd]
 
 end Puente
