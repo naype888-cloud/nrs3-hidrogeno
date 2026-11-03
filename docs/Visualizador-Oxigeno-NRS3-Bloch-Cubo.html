@@ -473,6 +473,50 @@
       box-shadow: 0 0 12px #ef4444;
     }
 
+    /* Speed presets bar & turbo pill */
+    .speed-presets-bar {
+      display: flex;
+      gap: 5px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .preset-pill {
+      flex: 1 1 auto;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text-main);
+      border-radius: 6px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 5px 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .preset-pill:hover {
+      background: rgba(53, 221, 255, 0.2);
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+    .preset-pill.active {
+      background: rgba(53, 221, 255, 0.35);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      font-weight: 700;
+    }
+    .preset-pill.turbo {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.85), rgba(53, 221, 255, 0.85));
+      color: #030712;
+      font-weight: 800;
+      border: 1px solid #35ddff;
+      box-shadow: 0 0 10px rgba(53, 221, 255, 0.5);
+    }
+    .preset-pill.turbo:hover {
+      box-shadow: 0 0 18px rgba(53, 221, 255, 0.95);
+      filter: brightness(1.2);
+    }
+
     /* Electron Grid Rows */
     .electron-row {
       display: grid;
@@ -935,8 +979,18 @@
             <button class="action-btn secondary" onclick="resetAllElectrons()">↺ Reset Origen</button>
           </div>
           <div class="range-wrap" style="margin-top:8px;">
-            <div class="range-header"><span>Frecuencia de Salto (Hasta 50 Hz):</span><span id="label-hop-speed">8 Hz</span></div>
-            <input type="range" id="slider-hop-speed" min="1" max="50" step="1" value="8" oninput="changeHopSpeed(this.value)">
+            <div class="range-header"><span>Frecuencia de Salto (Hasta 250 Hz):</span><span id="label-hop-speed">8 Hz</span></div>
+            <input type="range" id="slider-hop-speed" min="1" max="250" step="1" value="8" oninput="changeHopSpeed(this.value)">
+          </div>
+          <div class="speed-presets-bar">
+            <button class="preset-pill" onclick="changeHopSpeed(4)">4 Hz</button>
+            <button class="preset-pill" onclick="changeHopSpeed(25)">25 Hz</button>
+            <button class="preset-pill" onclick="changeHopSpeed(60)">60 Hz</button>
+            <button class="preset-pill" onclick="changeHopSpeed(120)">120 Hz</button>
+            <button class="preset-pill turbo" onclick="changeHopSpeed(250)">⚡ 250 Hz NUBE ORBITAL</button>
+          </div>
+          <div style="font-size:10px; line-height:1.45; color:var(--text-muted); margin-top:8px; background:rgba(53,221,255,0.06); padding:8px 10px; border-radius:6px; border-left:3px solid var(--accent-cyan);">
+            <strong style="color:var(--accent-cyan);">PERSISTENCIA VISUAL & ORBITAL:</strong> A 250 Hz la persistencia retiniana fusiona los saltos discretos en una nube continua donde los electrones parecen estar presentes simultáneamente. Para un electrón real (~10¹⁵ Hz), <strong style="color:#ffd166;">250 Hz es todavía cámara ultra lenta</strong>.
           </div>
           <div class="formula-box" style="margin-top:8px; font-size:9.5px; border-color:rgba(16,185,129,0.3);">
             <span class="green" style="font-weight:700;">Principio de Exclusión de Pauli vía Determinante de Slater:</span><br>
@@ -2835,7 +2889,7 @@
       return det;
     }
 
-    function performHoppingStep() {
+    function performHoppingStep(skipDOM = false) {
       // Elegir aleatoriamente uno de los electrones activos para intentar un salto de eje
       const activeIndices = [];
       electronObjects.forEach((obj, idx) => {
@@ -2911,9 +2965,11 @@
         slaterStats.occAccepted++;
       }
 
-      updateElectronsListPositions();
-      updateSelectedBlochReadout();
-      updateSlaterHUD();
+      if (!skipDOM) {
+        updateElectronsListPositions();
+        updateSelectedBlochReadout();
+        updateSlaterHUD();
+      }
     }
 
     function updateSlaterHUD() {
@@ -3296,8 +3352,22 @@
 
     function changeHopSpeed(val) {
       hopSpeedHz = parseFloat(val);
+      const slider = document.getElementById('slider-hop-speed');
+      if (slider) slider.value = val;
       const lbl = document.getElementById('label-hop-speed');
-      if (lbl) lbl.textContent = `${val} Hz`;
+      if (lbl) {
+        if (hopSpeedHz >= 200) {
+          lbl.innerHTML = `${val} Hz <span style="color:#35ddff; font-weight:700;">[NUBE CUÁNTICA]</span>`;
+        } else if (hopSpeedHz >= 100) {
+          lbl.innerHTML = `${val} Hz <span style="color:#ffd166;">[ORBITAL SIMULTÁNEO]</span>`;
+        } else {
+          lbl.textContent = `${val} Hz`;
+        }
+      }
+      document.querySelectorAll('.preset-pill').forEach(btn => {
+        const txt = btn.textContent;
+        btn.classList.toggle('active', txt.startsWith(`${val} Hz`) || (val >= 250 && btn.classList.contains('turbo')));
+      });
     }
 
     // Gamma GPU Engine
@@ -3398,10 +3468,26 @@
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
 
-      // Auto-hopping check
-      if (autoHopping && (elapsed - lastHopTime >= (1.0 / hopSpeedHz))) {
-        performHoppingStep();
-        lastHopTime = elapsed;
+      // Auto-hopping check (accumulator loop up to 250 Hz)
+      if (autoHopping) {
+        const hopInterval = 1.0 / hopSpeedHz;
+        if (elapsed - lastHopTime > 0.1) {
+          lastHopTime = elapsed - hopInterval;
+        }
+        let hopsThisFrame = 0;
+        const maxHops = Math.max(1, Math.ceil(hopSpeedHz / 20));
+        let hopped = false;
+        while (elapsed - lastHopTime >= hopInterval && hopsThisFrame < maxHops) {
+          lastHopTime += hopInterval;
+          hopsThisFrame++;
+          hopped = true;
+          performHoppingStep(true);
+        }
+        if (hopped) {
+          updateElectronsListPositions();
+          updateSelectedBlochReadout();
+          updateSlaterHUD();
+        }
       }
 
       // Smooth electron positions interpolation
